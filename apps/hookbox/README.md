@@ -33,7 +33,7 @@ node -e "console.log(require('node:crypto').randomBytes(32).toString('base64url'
 printf '%s' 'a-long-password-here' | npm run hash-password
 ```
 
-Put the first value in `SESSION_SECRET` (at least 32 characters) and the second in `ADMIN_PASSWORD_HASH`. Set `ADMIN_USERNAME` to whatever you want to type at login. The hash script refuses passwords passed as arguments so they do not land in shell history. Passwords must be 12–200 characters. The hash is bcrypt with cost 12.
+Put the first value in `SESSION_SECRET` (at least 32 characters). The hash script prints an `ADMIN_PASSWORD_HASH=...` line with each `$` escaped as `\$`. Paste that line as-is. Next.js expands `$` in `.env` files, including inside quotes, so an unescaped bcrypt hash is corrupted and login refuses it. Set `ADMIN_USERNAME` to whatever you want to type at login. The script refuses passwords passed as arguments so they do not land in shell history. Passwords must be 12–200 characters. The hash is bcrypt with cost 12.
 
 ```bash
 npm run dev

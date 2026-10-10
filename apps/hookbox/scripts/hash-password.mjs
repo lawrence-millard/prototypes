@@ -15,7 +15,7 @@ if (password.length < 12 || password.length > 200) {
 }
 
 const hashed = await hash(password, 12)
-stdout.write(`${hashed}\n`)
+stdout.write(`ADMIN_PASSWORD_HASH=${hashed.replaceAll('$', '\\$')}\n`)
 
 async function readPassword() {
   if (!stdin.isTTY) {
