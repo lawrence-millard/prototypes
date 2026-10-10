@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f4f3f8;
+  --foreground: #17151f;
+}
+
+@theme inline {
+  --color-paper: #f4f3f8;
+  --color-ink: #17151f;
+  --color-mute: #8d8a99;
+  --color-brand: #6d4aff;
+  --color-brand-deep: #5a3cf0;
+  --color-brand-soft: #f3efff;
+  --color-line: #e7e5ee;
+  --color-good: #2fa36a;
+  --color-bad: #e24b4b;
+  --color-mid: #ef9f3a;
+  --color-tip: #fff6e8;
+  --color-tip-title: #c48a22;
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
