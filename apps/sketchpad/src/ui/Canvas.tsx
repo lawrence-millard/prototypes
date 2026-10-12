@@ -156,6 +156,7 @@ function ShapeBody({ shape }: { shape: Shape }) {
   if (shape.kind === 'ellipse') {
     return (
       <ellipse
+        data-shape-body="true"
         cx={shape.x + shape.width / 2}
         cy={shape.y + shape.height / 2}
         rx={shape.width / 2}
@@ -170,10 +171,11 @@ function ShapeBody({ shape }: { shape: Shape }) {
     const cx = shape.x + shape.width / 2
     const cy = shape.y + shape.height / 2
     const points = `${cx},${shape.y} ${shape.x + shape.width},${cy} ${cx},${shape.y + shape.height} ${shape.x},${cy}`
-    return <polygon points={points} fill={shape.fill} stroke={shape.stroke} strokeWidth={2} />
+    return <polygon data-shape-body="true" points={points} fill={shape.fill} stroke={shape.stroke} strokeWidth={2} />
   }
   return (
     <rect
+      data-shape-body="true"
       x={shape.x}
       y={shape.y}
       width={shape.width}
@@ -198,6 +200,7 @@ function ShapeLabel({ shape }: { shape: Shape }) {
       x={center.x}
       y={center.y}
       textAnchor="middle"
+      dominantBaseline="middle"
       fontFamily="Segoe UI, Helvetica Neue, sans-serif"
       fontSize={15}
       fill={INK}

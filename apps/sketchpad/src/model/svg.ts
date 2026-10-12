@@ -101,7 +101,7 @@ function renderLabel(shape: Shape, x: number, y: number): string {
       return `<tspan x="${n(center.x)}" dy="${n(dy)}">${escapeXml(line)}</tspan>`
     })
     .join('')
-  return `<text x="${n(center.x)}" y="${n(center.y)}" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, sans-serif" font-size="15" fill="${INK}" stroke="${HALO}" stroke-width="4" paint-order="stroke">${tspans}</text>`
+  return `<text x="${n(center.x)}" y="${n(center.y)}" text-anchor="middle" dominant-baseline="middle" font-family="Segoe UI, Helvetica Neue, sans-serif" font-size="15" fill="${INK}" stroke="${HALO}" stroke-width="4" paint-order="stroke">${tspans}</text>`
 }
 
 function n(value: number): string {

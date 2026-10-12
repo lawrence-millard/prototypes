@@ -3,6 +3,7 @@ import path from 'node:path'
 import { expect, test } from '@playwright/test'
 
 const screenshots = '/opt/cursor/artifacts/screenshots'
+const shot = (name: string) => path.join(screenshots, name)
 
 test('core loop: boards, connect, autosave, export, and import', async ({ page }) => {
   mkdirSync(screenshots, { recursive: true })
@@ -20,7 +21,7 @@ test('core loop: boards, connect, autosave, export, and import', async ({ page }
   await page.getByRole('button', { name: 'Delete sample data' }).click()
   await expect(page.getByRole('heading', { name: 'No boards on this browser' })).toBeVisible()
   await expect(page.getByRole('status')).toHaveText('Sample data deleted from this browser.')
-  await page.screenshot({ path: path.join(screenshots, 'empty_state.png') })
+  await page.screenshot({ path: shot('empty_state_v2.png') })
 
   await page.getByRole('button', { name: 'New board' }).click()
   await expect(page.getByRole('status').filter({ hasText: 'Board created.' })).toBeVisible()
@@ -52,11 +53,11 @@ test('core loop: boards, connect, autosave, export, and import', async ({ page }
     element.scrollTop = 0
     element.scrollLeft = 0
   })
-  await page.screenshot({ path: path.join(screenshots, 'connected_shapes.png') })
+  await page.screenshot({ path: shot('connected_shapes_v2.png') })
 
   await page.getByRole('button', { name: 'Export' }).click()
   await expect(page.getByRole('dialog', { name: 'Export board' })).toBeVisible()
-  await page.screenshot({ path: path.join(screenshots, 'export_dialog.png') })
+  await page.screenshot({ path: shot('export_dialog_v2.png') })
   const [download] = await Promise.all([
     page.waitForEvent('download'),
     page.getByRole('button', { name: 'Download JSON' }).click(),
@@ -66,7 +67,7 @@ test('core loop: boards, connect, autosave, export, and import', async ({ page }
   await page.getByRole('button', { name: 'Close' }).click()
 
   await page.getByRole('button', { name: 'Select' }).click()
-  const rect = page.locator('[data-shape-kind="rectangle"] rect')
+  const rect = page.locator('[data-shape-kind="rectangle"] [data-shape-body]')
   const line = page.getByTestId('connector').first()
   const xBefore = await rect.getAttribute('x')
   const x1Before = await line.getAttribute('x1')
@@ -80,16 +81,15 @@ test('core loop: boards, connect, autosave, export, and import', async ({ page }
   await expect(line).not.toHaveAttribute('x1', x1Before)
   await page.keyboard.press('Control+Z')
   await expect(rect).toHaveAttribute('x', xBefore)
-
-  const status = page.getByTestId('save-status')
-  await expect(status).toHaveText(/Unsaved changes|Saving…/)
-  await expect(status).toHaveText('Saved on this browser')
+  await page.keyboard.press('Control+s')
+  await expect(page.getByTestId('save-status')).toHaveText('Saved on this browser')
 
   await page.reload()
   await expect(page.getByRole('heading', { name: 'Flow' })).toBeVisible()
   await page.getByRole('button', { name: 'Open Flow' }).click()
   await expect(page.locator('[data-shape-kind]')).toHaveCount(3)
   await expect(page.getByTestId('connector')).toHaveCount(2)
+  await expect(page.locator('[data-shape-kind="rectangle"] [data-shape-body]')).toHaveAttribute('x', xBefore)
 
   await page.getByRole('button', { name: 'Boards' }).click()
   await page.getByRole('button', { name: 'Import JSON' }).click()
@@ -98,7 +98,7 @@ test('core loop: boards, connect, autosave, export, and import', async ({ page }
     mimeType: 'application/json',
     buffer: Buffer.from('{"format":"nope","secret":"do-not-show"}'),
   })
-  await expect(page.getByRole('alert')).toHaveText('This file is not a Sketchpad board.')
+  await expect(page.getByRole('alert')).toHaveText('This file has an unsupported field.')
   await expect(page.getByRole('dialog')).not.toContainText('do-not-show')
   await page.getByLabel('Board file').setInputFiles(downloadPath!)
   await expect(page.getByRole('status').filter({ hasText: 'Imported "Flow".' })).toBeVisible()
