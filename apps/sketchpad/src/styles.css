@@ -164,7 +164,7 @@ h1 { font-size: 32px; letter-spacing: -0.03em; }
 
 p { margin: 0; }
 
-.panel, .empty, .board-card, .dialog, .inspector, .signin-copy {
+.panel, .empty, .board-card, .dialog, .inspector {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -269,7 +269,7 @@ p { margin: 0; }
   padding: 2px 8px;
 }
 
-.meta, .hint-line, .inspector p, .dialog p, .empty p, .page-head p, .signin p {
+.meta, .hint-line, .inspector p, .dialog p, .empty p, .page-head p {
   color: var(--muted);
   font-size: 14px;
 }
@@ -455,15 +455,6 @@ kbd {
   padding: 32px 16px;
   gap: 16px;
   text-align: center;
-}
-
-.signin { text-align: left; }
-
-.signin-copy {
-  width: min(520px, 100%);
-  padding: 20px;
-  display: grid;
-  gap: 8px;
 }
 
 .user-fallback { font-size: 14px; color: var(--muted); }

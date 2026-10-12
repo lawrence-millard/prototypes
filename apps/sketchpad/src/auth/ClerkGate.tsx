@@ -44,15 +44,7 @@ function ClerkSession({ children }: { children: ReactNode }) {
 function SignInScreen() {
   return (
     <main className="signin">
-      <div className="signin-copy">
-        <h1>Sign in to Sketchpad</h1>
-        <p>
-          A Clerk publishable key is set, so this browser asks you to sign in before opening boards.
-          Use the same Clerk application you already use for your other apps. Boards still stay in
-          IndexedDB on this device, separated by account. They are not uploaded.
-        </p>
-        <p>To use Sketchpad without an account, clear VITE_CLERK_PUBLISHABLE_KEY and reload.</p>
-      </div>
+      <p className="brand-name">Sketchpad</p>
       <SignIn
         routing="virtual"
         fallbackRedirectUrl="/"
