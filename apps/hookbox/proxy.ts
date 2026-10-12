@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import type { NextFetchEvent, NextRequest } from 'next/server'
 import { isPublicPath } from './lib/access'
+import { handleClerkProxy } from './lib/clerk-proxy'
+import { clerkEnabled } from './lib/clerk-mode'
 import { buildContentSecurityPolicy } from './lib/csp'
 import { COOKIE_NAME } from './lib/constants'
+import { requestIsHttps } from './lib/http'
 import { verifySessionToken } from './lib/session'
 
 const SECURITY_HEADERS: ReadonlyArray<readonly [string, string]> = [
@@ -15,14 +18,21 @@ const SECURITY_HEADERS: ReadonlyArray<readonly [string, string]> = [
     'Permissions-Policy',
     'camera=(), microphone=(), geolocation=(), payment=(), usb=(), clipboard-write=(self)',
   ],
-  ['Cross-Origin-Opener-Policy', 'same-origin'],
   ['Cross-Origin-Resource-Policy', 'same-origin'],
   ['X-DNS-Prefetch-Control', 'off'],
   ['X-Permitted-Cross-Domain-Policies', 'none'],
   ['Cache-Control', 'no-store'],
 ]
 
-export async function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest, event: NextFetchEvent) {
+  if (clerkEnabled()) {
+    const response = await handleClerkProxy(request, event)
+    return withSecurity(response, null, 'same-origin-allow-popups')
+  }
+  return await passwordProxy(request)
+}
+
+async function passwordProxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
   const https = requestIsHttps(request)
   const csp = buildContentSecurityPolicy(nonce, {
@@ -42,29 +52,28 @@ export async function proxy(request: NextRequest) {
   )
 
   if (pathname === '/login' && sessionOk) {
-    return withSecurity(NextResponse.redirect(new URL('/', request.url)), csp)
+    return withSecurity(NextResponse.redirect(new URL('/', request.url)), csp, 'same-origin')
   }
 
   if (!isPublicPath(pathname) && !sessionOk) {
     if (pathname.startsWith('/api/')) {
-      return withSecurity(NextResponse.json({ error: 'unauthorized' }, { status: 401 }), csp)
+      return withSecurity(NextResponse.json({ error: 'unauthorized' }, { status: 401 }), csp, 'same-origin')
     }
-    return withSecurity(NextResponse.redirect(new URL('/login', request.url)), csp)
+    return withSecurity(NextResponse.redirect(new URL('/login', request.url)), csp, 'same-origin')
   }
 
-  return withSecurity(NextResponse.next({ request: { headers: requestHeaders } }), csp)
+  return withSecurity(
+    NextResponse.next({ request: { headers: requestHeaders } }),
+    csp,
+    'same-origin',
+  )
 }
 
-function withSecurity(response: NextResponse, csp: string) {
-  response.headers.set('Content-Security-Policy', csp)
+function withSecurity(response: Response, csp: string | null, openerPolicy: string) {
+  if (csp) response.headers.set('Content-Security-Policy', csp)
+  response.headers.set('Cross-Origin-Opener-Policy', openerPolicy)
   for (const [key, value] of SECURITY_HEADERS) response.headers.set(key, value)
   return response
-}
-
-function requestIsHttps(request: NextRequest): boolean {
-  const forwarded = request.headers.get('x-forwarded-proto')?.split(',')[0]?.trim()
-  if (forwarded) return forwarded === 'https'
-  return request.nextUrl.protocol === 'https:'
 }
 
 export const config = {

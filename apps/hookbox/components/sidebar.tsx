@@ -1,13 +1,16 @@
 import Link from 'next/link'
 import { logout } from '@/app/login/actions'
+import { ClerkSignOut } from '@/components/clerk-sign-out'
 import type { WebhookSummary } from '@/lib/types'
 
 export function Sidebar({
   webhooks,
   activeId,
+  usingClerk,
 }: {
   webhooks: WebhookSummary[]
   activeId: string | null
+  usingClerk: boolean
 }) {
   return (
     <aside className="sidebar">
@@ -37,11 +40,17 @@ export function Sidebar({
           </li>
         ))}
       </ul>
-      <form action={logout}>
-        <button className="text-button" type="submit">
-          Sign out
-        </button>
-      </form>
+      <div className="sign-out">
+        {usingClerk ? (
+          <ClerkSignOut />
+        ) : (
+          <form action={logout}>
+            <button className="text-button" type="submit">
+              Sign out
+            </button>
+          </form>
+        )}
+      </div>
     </aside>
   )
 }

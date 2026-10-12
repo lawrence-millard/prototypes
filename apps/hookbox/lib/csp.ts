@@ -20,3 +20,14 @@ export function buildContentSecurityPolicy(
   if (options.https) directives.push('upgrade-insecure-requests')
   return directives.join('; ')
 }
+
+export function clerkCspDirectives(https: boolean): Record<string, string[]> {
+  const directives: Record<string, string[]> = {
+    'base-uri': ["'self'"],
+    'object-src': ["'none'"],
+    'frame-ancestors': ["'none'"],
+    'manifest-src': ["'self'"],
+  }
+  if (https) directives['upgrade-insecure-requests'] = ['']
+  return directives
+}

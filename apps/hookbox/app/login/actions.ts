@@ -3,6 +3,7 @@
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { clearSession, dummyPasswordWork, issueSession, passwordsMatch } from '@/lib/auth'
+import { clerkEnabled } from '@/lib/clerk-mode'
 import { clientIp } from '@/lib/http'
 import { sanitizeError } from '@/lib/errors'
 import { clearLoginFailures, loginLocked, recordLoginFailure } from '@/lib/rate-limit'
@@ -10,6 +11,7 @@ import { clearLoginFailures, loginLocked, recordLoginFailure } from '@/lib/rate-
 export type LoginState = { error: string }
 
 export async function login(_prev: LoginState, formData: FormData): Promise<LoginState> {
+  if (clerkEnabled()) return { error: 'Sign-in is unavailable.' }
   const username = String(formData.get('username') ?? '')
   const password = String(formData.get('password') ?? '')
   if (username.length > 64 || password.length > 200 || password.length === 0) {

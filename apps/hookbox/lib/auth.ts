@@ -2,6 +2,8 @@ import 'server-only'
 import { compare } from 'bcryptjs'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { clerkUserAllowed } from './clerk-allow'
+import { clerkEnabled } from './clerk-mode'
 import { COOKIE_NAME, SESSION_SECONDS } from './constants'
 import { getAdminPasswordHash, getAdminUsername, getSessionSecret } from './env'
 import { constantStringEqual, signSession, verifySessionToken } from './session'
@@ -14,6 +16,12 @@ export async function readSession(): Promise<boolean> {
 }
 
 export async function requireSession(): Promise<void> {
+  if (clerkEnabled()) {
+    const { auth } = await import('@clerk/nextjs/server')
+    const { userId } = await auth()
+    if (!userId || !(await clerkUserAllowed(userId))) redirect(userId ? '/forbidden' : '/login')
+    return
+  }
   if (!(await readSession())) redirect('/login')
 }
 

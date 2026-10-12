@@ -3,12 +3,14 @@ import { createHash } from 'node:crypto'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import test from 'node:test'
+import { pathToFileURL } from 'node:url'
 import { createElement, Fragment } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { embedAccent, renderDiscord, safeHref } from '../components/discord'
 import { isPublicPath } from '../lib/access'
+import { clerkEnabled, emailIsAllowed, parseAllowedEmails } from '../lib/clerk-mode'
 import { SESSION_SECONDS } from '../lib/constants'
-import { buildContentSecurityPolicy } from '../lib/csp'
+import { buildContentSecurityPolicy, clerkCspDirectives } from '../lib/csp'
 import { headerSubset, readLimitedBody } from '../lib/http'
 import { parseInbound } from '../lib/parse'
 import { signSession, verifySessionToken } from '../lib/session'
@@ -17,15 +19,42 @@ import { newWebhookToken, tokenMatches } from '../lib/token'
 
 const secret = 'test-session-secret-with-32-characters'
 
-test('public paths are only login, robots, and ingest', () => {
+test('public paths are login, clerk screens, robots, and ingest', () => {
   assert.equal(isPublicPath('/login'), true)
   assert.equal(isPublicPath('/login/'), true)
+  assert.equal(isPublicPath('/login/factor-one'), true)
   assert.equal(isPublicPath('/login-extra'), false)
+  assert.equal(isPublicPath('/sign-up'), true)
+  assert.equal(isPublicPath('/sign-up/verify'), true)
+  assert.equal(isPublicPath('/sign-up-extra'), false)
+  assert.equal(isPublicPath('/forbidden'), true)
+  assert.equal(isPublicPath('/__clerk/v1/client'), true)
   assert.equal(isPublicPath('/robots.txt'), true)
   assert.equal(isPublicPath('/api/hook/11111111-1111-4111-8111-111111111111/token'), true)
   assert.equal(isPublicPath('/api/hook'), false)
   assert.equal(isPublicPath('/'), false)
   assert.equal(isPublicPath('/hooks/11111111-1111-4111-8111-111111111111'), false)
+})
+
+test('clerk turns on only when both keys are set, and emails must be verified', () => {
+  assert.equal(clerkEnabled({}), false)
+  assert.equal(clerkEnabled({ NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: 'pk_test_x' }), false)
+  assert.equal(clerkEnabled({ CLERK_SECRET_KEY: 'sk_test_x' }), false)
+  assert.equal(
+    clerkEnabled({ NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ' pk_test_x ', CLERK_SECRET_KEY: 'sk_test_x' }),
+    true,
+  )
+  const allowlist = parseAllowedEmails(' Owner@Example.com, not-an-email, second@example.com ')
+  assert.deepEqual([...allowlist], ['owner@example.com', 'second@example.com'])
+  assert.equal(parseAllowedEmails('').size, 0)
+  const verified = { verification: { status: 'verified' } }
+  assert.equal(emailIsAllowed([{ emailAddress: 'OWNER@example.com', ...verified }], allowlist), true)
+  assert.equal(
+    emailIsAllowed([{ emailAddress: 'owner@example.com', verification: { status: 'unverified' } }], allowlist),
+    false,
+  )
+  assert.equal(emailIsAllowed([{ emailAddress: 'other@example.com', ...verified }], allowlist), false)
+  assert.equal(emailIsAllowed([{ emailAddress: 'second@example.com', verification: null }], allowlist), false)
 })
 
 test('production CSP is strict', () => {
@@ -37,7 +66,38 @@ test('production CSP is strict', () => {
   assert.match(csp, /upgrade-insecure-requests/)
   const local = buildContentSecurityPolicy('abc123', { dev: false, https: false })
   assert.doesNotMatch(local, /upgrade-insecure-requests/)
+  assert.doesNotMatch(csp, /clerk/)
+  assert.deepEqual(clerkCspDirectives(true)['frame-ancestors'], ["'none'"])
+  assert.deepEqual(clerkCspDirectives(true)['object-src'], ["'none'"])
+  assert.deepEqual(clerkCspDirectives(false)['upgrade-insecure-requests'], undefined)
 })
+
+test('clerk strict CSP keeps the nonce and Hookbox frame lock', async () => {
+  const file = path.resolve(
+    import.meta.dirname,
+    '../node_modules/@clerk/nextjs/dist/esm/server/content-security-policy.js',
+  )
+  const mod = await import(pathToFileURL(file).href)
+  const created = mod.createContentSecurityPolicyHeaders('example.clerk.accounts.dev', {
+    strict: true,
+    directives: clerkCspDirectives(true),
+  })
+  const csp = headerValue(created.headers, 'content-security-policy')
+  const script = csp.split(';').find((part: string) => part.trim().startsWith('script-src')) ?? ''
+  assert.match(script, /strict-dynamic/)
+  assert.match(script, /nonce-/)
+  assert.doesNotMatch(script, /(^|\s)https:(\s|$)/)
+  assert.match(csp, /frame-ancestors 'none'/)
+  assert.match(csp, /object-src 'none'/)
+  assert.match(csp, /https:\/\/\*\.protect\.clerk\.com/)
+  assert.match(csp, /upgrade-insecure-requests/)
+  assert.match(csp, /style-src 'self' 'unsafe-inline'/)
+  assert.match(csp, /example\.clerk\.accounts\.dev/)
+})
+
+function headerValue(headers: Array<[string, string]>, name: string): string {
+  return headers.find(([key]) => key.toLowerCase() === name)?.[1] ?? ''
+}
 
 test('session cookie round trip rejects tampering and expiry', async () => {
   const token = await signSession('admin', secret, 0)
@@ -156,7 +216,8 @@ test('app source does not inject HTML or publish secrets', async () => {
   const root = path.resolve(import.meta.dirname, '..')
   const source = await readTree(root)
   assert.equal(source.includes('dangerouslySetInnerHTML'), false)
-  assert.equal(source.includes('NEXT_PUBLIC_'), false)
+  const publicEnv = [...new Set(source.match(/NEXT_PUBLIC_[A-Z0-9_]+/g) ?? [])]
+  assert.deepEqual(publicEnv, ['NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY'])
   assert.equal(source.includes('INGEST_TOKEN'), false)
 })
 

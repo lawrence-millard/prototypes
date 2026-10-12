@@ -1,6 +1,7 @@
 import { headers } from 'next/headers'
 import { Sidebar } from '@/components/sidebar'
 import { requireSession } from '@/lib/auth'
+import { clerkEnabled } from '@/lib/clerk-mode'
 import { UUID_RE } from '@/lib/constants'
 import { sanitizeError } from '@/lib/errors'
 import { listWebhooks } from '@/lib/webhooks'
@@ -24,7 +25,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="shell">
-      <Sidebar webhooks={webhooks} activeId={activeId} />
+      <Sidebar webhooks={webhooks} activeId={activeId} usingClerk={clerkEnabled()} />
       <main className="main">
         {databaseError ? <p className="error">Hookbox cannot reach the database.</p> : children}
       </main>

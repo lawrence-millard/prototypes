@@ -11,6 +11,12 @@ const HEADER_ALLOWLIST = [
   'user-agent',
 ] as const
 
+export function requestIsHttps(request: { headers: Headers; nextUrl: { protocol: string } }): boolean {
+  const forwarded = request.headers.get('x-forwarded-proto')?.split(',')[0]?.trim()
+  if (forwarded) return forwarded === 'https'
+  return request.nextUrl.protocol === 'https:'
+}
+
 export function clientIp(headers: Headers): string {
   const forwarded = headers.get('x-forwarded-for')
   const candidate = forwarded?.split(',')[0]?.trim() || headers.get('x-real-ip')?.trim() || ''
