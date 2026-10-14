@@ -1,0 +1,26 @@
+import { test, expect } from '@playwright/test'
+import { expectFocusAndTheme, expectHeaders, expectShell, prepare } from './smoke'
+
+test('focus', async ({ page }) => {
+  await prepare(page)
+  await page.goto('/')
+  await expectShell(page, 'focus')
+  await expect(page.getByText('Twenty-five minutes, then a record of the work.')).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Sign in' }).first()).toBeVisible()
+  await expect(page.getByRole('timer')).toHaveText('25:00')
+  await page.screenshot({ path: '/opt/cursor/artifacts/focus.png', fullPage: true })
+  await page.getByRole('radio', { name: 'short' }).click()
+  await expect(page.getByRole('timer')).toHaveText('05:00')
+  await page.getByRole('button', { name: 'start' }).click()
+  await expect(page.getByRole('timer')).not.toHaveText('05:00')
+  await page.getByRole('button', { name: 'pause' }).click()
+  await expectFocusAndTheme(page)
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.reload()
+  await expectShell(page, 'focus')
+  const signIn = await page.goto('/sign-in')
+  expect(signIn?.status()).toBeLessThan(500)
+  await expect(page.getByRole('heading', { level: 1, name: 'focus' })).toBeVisible()
+  await page.goto('/')
+  await expectHeaders(page, 'strict-origin-when-cross-origin')
+})
