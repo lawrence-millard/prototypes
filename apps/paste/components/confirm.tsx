@@ -2,9 +2,9 @@
 
 import { useFormStatus } from "react-dom"
 
-export function Confirm() {
+export function Confirm({ label = "Delete" }: { label?: string }) {
   const { pending } = useFormStatus()
   return (
-    <button className="ghost" type="submit" disabled={pending} aria-busy={pending}>confirm</button>
+    <button className="ghost" type="submit" disabled={pending} aria-busy={pending}>{pending ? "Saving" : label}</button>
   )
 }

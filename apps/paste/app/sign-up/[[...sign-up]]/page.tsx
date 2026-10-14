@@ -12,7 +12,7 @@ export default async function SignUpPage() {
   const enabled = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY)
   return (
     <main className="frame">
-      <Header name="paste" mark="p" signedIn={signedIn} href="/sign-in" label="sign in" />
+      <Header name="paste" mark="p" signedIn={signedIn} href="/sign-in" label="Sign in" />
       {enabled ? (
         <Suspense fallback={<Skeleton />}>
           <ClerkAuth mode="sign-up" />

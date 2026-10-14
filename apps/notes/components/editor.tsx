@@ -11,34 +11,43 @@ export function Editor({
   title,
   body,
   errors,
+  hint,
 }: {
   action: (state: State, formData: FormData) => Promise<State>
   id?: string
   title: string
   body: string
   errors: Record<string, string>
+  hint: string
 }) {
   const [state, formAction] = useActionState(action, null)
   const [text, setText] = useState(body)
-  const message = state?.error ? errors[state.error] ?? "unavailable" : ""
+  const message = state?.error ? errors[state.error] ?? "Unavailable" : ""
   return (
-    <form action={formAction} className="stack">
-      {id ? <input type="hidden" name="id" value={id} /> : null}
-      <label className="field">
-        <span className="label">title</span>
-        <input name="title" type="text" required maxLength={120} defaultValue={title} autoComplete="off" />
-      </label>
-      <label className="field">
-        <span className="label">body</span>
-        <textarea className="mono" name="body" maxLength={20000} value={text} onChange={(event) => setText(event.target.value)} />
-      </label>
-      {message ? <p className="alert" role="alert">{message}</p> : null}
-      <Submit />
-      <div>
-        <span className="label">preview</span>
-        <div className="md" dangerouslySetInnerHTML={{ __html: renderMarkdown(text) }} />
-      </div>
-    </form>
+    <div className="stack">
+      <form action={formAction} className="surface" data-composer="">
+        {id ? <input type="hidden" name="id" value={id} /> : null}
+        <label>
+          <span className="field-label">Title</span>
+          <input className="title-input" name="title" type="text" required maxLength={120} defaultValue={title} autoComplete="off" placeholder="Note title" />
+        </label>
+        <label className="split">
+          <span className="field-label">Body</span>
+          <textarea className="mono" name="body" maxLength={20000} value={text} placeholder="Write in markdown" onChange={(event) => setText(event.target.value)} />
+        </label>
+        {message ? <p className="alert" role="alert">{message}</p> : null}
+        <div className="composer-foot">
+          <span className="hint"><kbd>N</kbd> {hint}</span>
+          <Submit />
+        </div>
+      </form>
+      {text.trim() ? (
+        <section className="preview-block">
+          <span className="field-label">Preview</span>
+          <div className="md" dangerouslySetInnerHTML={{ __html: renderMarkdown(text) }} />
+        </section>
+      ) : null}
+    </div>
   )
 }
 
@@ -46,7 +55,7 @@ function Submit() {
   const { pending } = useFormStatus()
   return (
     <button className="primary" type="submit" disabled={pending} aria-busy={pending}>
-      {pending ? "saving" : "save"}
+      {pending ? "Saving" : "Save"}
     </button>
   )
 }

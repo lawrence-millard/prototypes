@@ -1,19 +1,21 @@
 import { notFound, redirect } from "next/navigation"
-import { ActionForm } from "@/components/action-form"
+import { Pencil, Trash2 } from "lucide-react"
+import { ActionForm, Submit } from "@/components/action-form"
 import { Confirm } from "@/components/confirm"
 import { Header } from "@/components/header"
 import { deletePasteAction, updatePasteAction } from "@/lib/actions"
 import { currentUserId } from "@/lib/auth"
 import { readPaste } from "@/lib/reads"
+import { relativeTime } from "@/lib/relative"
 import { remaining } from "@/lib/time"
 import { parseId } from "@/lib/validate"
 
 const errors: Record<string, string> = {
-  invalid: "invalid",
-  rate: "slow down",
-  unavailable: "unavailable",
-  missing: "missing",
-  limit: "full",
+  invalid: "Invalid",
+  rate: "Slow down",
+  unavailable: "Unavailable",
+  missing: "Missing",
+  limit: "Full",
 }
 
 export default async function PastePage({ params }: { params: Promise<{ id: string }> }) {
@@ -28,33 +30,41 @@ export default async function PastePage({ params }: { params: Promise<{ id: stri
     return (
       <main className="frame">
         <Header name="paste" mark="p" signedIn />
-        <p className="alert" role="alert">unavailable</p>
+        <p className="alert" role="alert">Unavailable</p>
       </main>
     )
   }
   if (!paste) notFound()
+  const now = Date.now()
   return (
     <main className="frame">
       <Header name="paste" mark="p" signedIn />
-      <p className="count">{remaining(paste.expiresAt, Date.now())}</p>
-      <pre className="paste">{paste.body}</pre>
-      <div className="actions">
+      <div className="row">
+        <p className="dim">{remaining(paste.expiresAt, now)} left</p>
+        <time className="time" dateTime={paste.createdAt}>{relativeTime(paste.createdAt, now)}</time>
+      </div>
+      <pre className="paste surface">{paste.body}</pre>
+      <div className="actions open">
         <details>
-          <summary>edit</summary>
-          <ActionForm action={updatePasteAction} submit="save" errors={errors}>
+          <summary className="icon-btn" aria-label="Edit"><Pencil size={16} strokeWidth={1.5} /></summary>
+          <ActionForm action={updatePasteAction} className="surface" errors={errors}>
             <input type="hidden" name="id" value={paste.id} />
-            <label className="field">
-              <span className="label">text</span>
-              <textarea className="mono" name="body" required maxLength={20000} defaultValue={paste.body} />
+            <label>
+              <span className="field-label">Text</span>
+              <textarea className="mono" name="body" required maxLength={20000} defaultValue={paste.body} placeholder="Paste text" />
             </label>
+            <Submit label="Save" />
           </ActionForm>
         </details>
         <details>
-          <summary>delete</summary>
-          <form action={deletePasteAction}>
-            <input type="hidden" name="id" value={paste.id} />
-            <Confirm />
-          </form>
+          <summary className="icon-btn" aria-label="Delete"><Trash2 size={16} strokeWidth={1.5} /></summary>
+          <div className="pop-body">
+            <p className="dim">Delete this paste?</p>
+            <form action={deletePasteAction}>
+              <input type="hidden" name="id" value={paste.id} />
+              <Confirm />
+            </form>
+          </div>
         </details>
       </div>
     </main>

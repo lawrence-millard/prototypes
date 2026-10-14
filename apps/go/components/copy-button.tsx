@@ -1,5 +1,6 @@
 "use client"
 
+import { Check, Copy as CopyIcon } from "lucide-react"
 import { useState } from "react"
 
 export function Copy({ value }: { value: string }) {
@@ -7,7 +8,8 @@ export function Copy({ value }: { value: string }) {
   return (
     <button
       type="button"
-      className="ghost"
+      className="icon-btn"
+      aria-label={done ? "Copied" : "Copy link"}
       onClick={() => {
         void navigator.clipboard.writeText(value).then(() => {
           setDone(true)
@@ -15,7 +17,7 @@ export function Copy({ value }: { value: string }) {
         }, () => undefined)
       }}
     >
-      {done ? "copied" : "copy"}
+      {done ? <Check size={16} strokeWidth={1.5} /> : <CopyIcon size={16} strokeWidth={1.5} />}
     </button>
   )
 }

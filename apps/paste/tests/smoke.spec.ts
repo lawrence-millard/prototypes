@@ -21,10 +21,9 @@ test("main screen", async ({ page }) => {
   expect(response?.headers()["x-powered-by"]).toBeUndefined()
   await expect(page).toHaveTitle("paste")
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("paste")
-  await expect(page.getByLabel("text")).toBeVisible()
-  await expect(page.getByLabel("expires")).toBeVisible()
-  await expect(page.getByText("no pastes")).toBeVisible()
-  expect(await page.locator("[placeholder]").count()).toBe(0)
+  await expect(page.getByText("Text that expires, kept with your account.")).toBeVisible()
+  await expect(page.locator(".preview")).toBeVisible()
+  await expect(page.getByRole("link", { name: "Sign in" })).toBeVisible()
   const text = (await page.locator("body").innerText()).toLowerCase()
   for (const word of banned) expect(text).not.toContain(word)
   expect(third).toEqual([])
@@ -50,8 +49,7 @@ test("keyboard, theme, and mobile", async ({ page }) => {
 
 test("save asks for sign in", async ({ page }) => {
   await page.goto("/")
-  await page.getByLabel("text").fill("hello")
-  await page.getByRole("button", { name: "save" }).click()
+  await page.getByRole("link", { name: "Sign in" }).click()
   await page.waitForURL("**/sign-in")
   await expect(page).toHaveTitle("sign in · paste")
   await expect(page.getByRole("link", { name: "sign up" })).toBeVisible()

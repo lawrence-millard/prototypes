@@ -1,18 +1,20 @@
 import { notFound, redirect } from "next/navigation"
+import { Trash2 } from "lucide-react"
 import { Confirm } from "@/components/confirm"
 import { Editor } from "@/components/editor"
 import { Header } from "@/components/header"
+import { Shortcuts } from "@/components/shortcuts"
 import { deleteNoteAction, updateNoteAction } from "@/lib/actions"
 import { currentUserId } from "@/lib/auth"
 import { readNote } from "@/lib/reads"
 import { parseId } from "@/lib/validate"
 
 const errors: Record<string, string> = {
-  invalid: "invalid",
-  rate: "slow down",
-  unavailable: "unavailable",
-  missing: "missing",
-  limit: "full",
+  invalid: "Invalid",
+  rate: "Slow down",
+  unavailable: "Unavailable",
+  missing: "Missing",
+  limit: "Full",
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -40,7 +42,7 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
     return (
       <main className="frame">
         <Header name="notes" mark="n" signedIn />
-        <p className="alert" role="alert">unavailable</p>
+        <p className="alert" role="alert">Unavailable</p>
       </main>
     )
   }
@@ -48,16 +50,20 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
   return (
     <main className="frame">
       <Header name="notes" mark="n" signedIn />
-      <Editor action={updateNoteAction} id={note.id} title={note.title} body={note.body} errors={errors} />
-      <div className="actions">
+      <Editor action={updateNoteAction} id={note.id} title={note.title} body={note.body} errors={errors} hint="Edit" />
+      <div className="actions open">
         <details>
-          <summary>delete</summary>
-          <form action={deleteNoteAction}>
-            <input type="hidden" name="id" value={note.id} />
-            <Confirm />
-          </form>
+          <summary className="icon-btn" aria-label="Delete"><Trash2 size={16} strokeWidth={1.5} /></summary>
+          <div className="pop-body">
+            <p className="dim">Delete this note?</p>
+            <form action={deleteNoteAction}>
+              <input type="hidden" name="id" value={note.id} />
+              <Confirm />
+            </form>
+          </div>
         </details>
       </div>
+      <Shortcuts rows={[["N", "Title"], ["?", "Shortcuts"], ["Esc", "Close"]]} />
     </main>
   )
 }

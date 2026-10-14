@@ -21,10 +21,9 @@ test("main screen", async ({ page }) => {
   expect(response?.headers()["x-powered-by"]).toBeUndefined()
   await expect(page).toHaveTitle("notes")
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("notes")
-  await expect(page.getByLabel("title")).toBeVisible()
-  await expect(page.getByLabel("body")).toBeVisible()
-  await expect(page.getByText("no notes")).toBeVisible()
-  expect(await page.locator("[placeholder]").count()).toBe(0)
+  await expect(page.getByText("Markdown notes on every device.")).toBeVisible()
+  await expect(page.locator(".preview")).toBeVisible()
+  await expect(page.getByRole("link", { name: "Sign in" })).toBeVisible()
   const text = (await page.locator("body").innerText()).toLowerCase()
   for (const word of banned) expect(text).not.toContain(word)
   expect(third).toEqual([])
@@ -50,8 +49,7 @@ test("keyboard, theme, and mobile", async ({ page }) => {
 
 test("save asks for sign in", async ({ page }) => {
   await page.goto("/")
-  await page.getByLabel("title").fill("https://example.com/a")
-  await page.getByRole("button", { name: "save" }).click()
+  await page.getByRole("link", { name: "Sign in" }).click()
   await page.waitForURL("**/sign-in")
   await expect(page).toHaveTitle("sign in · notes")
   await expect(page.getByRole("link", { name: "sign up" })).toBeVisible()

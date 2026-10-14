@@ -7,6 +7,7 @@ export function clerkOn() {
 }
 
 export async function currentUserId() {
+  if (process.env.PREVIEW === "1") return "user_preview"
   if (!clerkOn()) return null
   const { auth } = await import("@clerk/nextjs/server")
   const { userId } = await auth()

@@ -5,8 +5,10 @@ export const metadata = { title: "not found" }
 export default function NotFound() {
   return (
     <main className="frame">
-      <p className="alert">not found</p>
-      <p><Link href="/">go</Link></p>
+      <div className="empty-state">
+        <p>Not found</p>
+        <Link className="primary" href="/">go</Link>
+      </div>
     </main>
   )
 }

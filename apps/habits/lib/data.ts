@@ -4,7 +4,7 @@ import { LIST_LIMIT, WRITE_LIMIT } from "./limits"
 import type { Sql } from "./sql"
 import { parseId, parseName, parseToggle } from "./validate"
 
-export type Habit = { id: string; name: string; days: string[] }
+export type Habit = { id: string; name: string; days: string[]; createdAt: string }
 export type Fail = "invalid" | "rate" | "unavailable" | "missing" | "limit"
 export type Result = { ok: true; id: string } | { ok: false; error: Fail }
 
@@ -21,6 +21,12 @@ function daysOf(value: unknown) {
   return []
 }
 
+function iso(value: unknown) {
+  if (value instanceof Date) return value.toISOString()
+  const date = new Date(String(value))
+  return Number.isNaN(date.getTime()) ? "" : date.toISOString()
+}
+
 function nums(row: Record<string, unknown> | undefined) {
   return {
     hits: Number(row?.hits ?? 0),
@@ -32,7 +38,7 @@ function nums(row: Record<string, unknown> | undefined) {
 
 export async function listHabits(sql: Sql, userId: string): Promise<Habit[]> {
   const rows = await sql`
-    SELECT h.id, h.name,
+    SELECT h.id, h.name, h.created_at,
       COALESCE(json_agg(c.day ORDER BY c.day) FILTER (WHERE c.day IS NOT NULL), '[]'::json) AS days
     FROM habits_habits h
     LEFT JOIN habits_checks c ON c.habit_id = h.id AND c.user_id = h.user_id
@@ -45,6 +51,7 @@ export async function listHabits(sql: Sql, userId: string): Promise<Habit[]> {
     id: String(row.id),
     name: String(row.name),
     days: daysOf(row.days),
+    createdAt: iso(row.created_at),
   }))
 }
 

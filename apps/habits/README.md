@@ -18,6 +18,8 @@ Clerk frontend API: `https://clerk.millard.ink`. Allow `https://habits.millard.i
 
 `habits_habits`, `habits_checks`, and `habits_rate_limits` are created on the first query.
 
+`PREVIEW=1` renders sample rows for local screenshots. Leave it unset in production.
+
 ## Scripts
 
 ```bash

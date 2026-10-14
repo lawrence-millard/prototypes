@@ -1,12 +1,12 @@
 import Link from "next/link"
-import { SignOut } from "./sign-out"
+import { Account } from "./account"
 
 export function Header({
   name,
   mark,
   signedIn,
   href = "/sign-in",
-  label = "sign in",
+  label,
 }: {
   name: string
   mark: string
@@ -19,7 +19,7 @@ export function Header({
       <Link href="/" className="mark" aria-label={name}>{mark}</Link>
       <h1>{name}</h1>
       <div className="account">
-        {signedIn ? <SignOut /> : <Link href={href}>{label}</Link>}
+        {signedIn ? <Account /> : label ? <Link href={href}>{label}</Link> : null}
       </div>
     </header>
   )

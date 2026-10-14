@@ -1,16 +1,18 @@
 "use client"
 
+import { Check, Pencil, Trash2 } from "lucide-react"
 import { useOptimistic, useState, useTransition } from "react"
 import { deleteHabitAction, renameHabitAction, toggleHabitAction } from "@/lib/actions"
 import { applyToggle, streak, week } from "@/lib/dates"
 import type { Habit } from "@/lib/data"
+import { relativeTime } from "@/lib/relative"
 
 const errors: Record<string, string> = {
-  invalid: "invalid",
-  rate: "slow down",
-  unavailable: "unavailable",
-  missing: "missing",
-  limit: "full",
+  invalid: "Invalid",
+  rate: "Slow down",
+  unavailable: "Unavailable",
+  missing: "Missing",
+  limit: "Full",
 }
 
 export function HabitList({ habits, today }: { habits: Habit[]; today: string }) {
@@ -18,13 +20,14 @@ export function HabitList({ habits, today }: { habits: Habit[]; today: string })
   const [optimistic, update] = useOptimistic(habits, reduce)
   const [, start] = useTransition()
   const days = week(today)
+  const now = Date.now()
 
   function toggle(habit: Habit) {
     const on = !habit.days.includes(today)
     start(async () => {
       update({ type: "toggle", id: habit.id, on, today })
       const result = await toggleHabitAction(habit.id, on ? "1" : "0", today)
-      setProblem(result?.error ? errors[result.error] ?? "unavailable" : "")
+      setProblem(result?.error ? errors[result.error] ?? "Unavailable" : "")
     })
   }
 
@@ -32,7 +35,7 @@ export function HabitList({ habits, today }: { habits: Habit[]; today: string })
     start(async () => {
       update({ type: "delete", id })
       const result = await deleteHabitAction(id)
-      setProblem(result?.error ? errors[result.error] ?? "unavailable" : "")
+      setProblem(result?.error ? errors[result.error] ?? "Unavailable" : "")
     })
   }
 
@@ -41,14 +44,18 @@ export function HabitList({ habits, today }: { habits: Habit[]; today: string })
       {problem ? <p className="alert" role="alert">{problem}</p> : null}
       {optimistic.map((habit) => {
         const have = new Set(habit.days)
+        const count = streak(habit.days, today)
         return (
           <article className="item" key={habit.id}>
-            <h2>{habit.name}</h2>
-            <p className="streak"><span className="label">streak</span><span className="count">{streak(habit.days, today)}</span></p>
+            <div className="row">
+              <h2>{habit.name}</h2>
+              {habit.createdAt ? <time className="time" dateTime={habit.createdAt}>{relativeTime(habit.createdAt, now)}</time> : null}
+            </div>
+            <p className="streak">{count === 1 ? "1 day streak" : `${count} day streak`}</p>
             <div className="week">
               {days.map((day) => (
                 <div className="day" key={day.day}>
-                  <span className="label">{day.label}</span>
+                  <span className="dow">{day.label}</span>
                   {day.today ? (
                     <button
                       type="button"
@@ -56,28 +63,38 @@ export function HabitList({ habits, today }: { habits: Habit[]; today: string })
                       aria-pressed={have.has(day.day)}
                       aria-label={`${habit.name} ${today}`}
                       onClick={() => toggle(habit)}
-                    />
+                    >
+                      {have.has(day.day) ? <Check size={14} strokeWidth={1.75} /> : null}
+                    </button>
                   ) : (
-                    <span className={have.has(day.day) ? "cell on" : "cell"} />
+                    <span className={have.has(day.day) ? "cell on" : "cell"}>
+                      {have.has(day.day) ? <Check size={14} strokeWidth={1.75} /> : null}
+                    </span>
                   )}
                 </div>
               ))}
             </div>
-            <div className="actions">
-              <details>
-                <summary>edit</summary>
-                <Rename id={habit.id} name={habit.name} onDone={(name) => {
-                  start(async () => {
-                    update({ type: "rename", id: habit.id, name })
-                    const result = await renameHabitAction(habit.id, name)
-                    setProblem(result?.error ? errors[result.error] ?? "unavailable" : "")
-                  })
-                }} />
-              </details>
-              <details>
-                <summary>delete</summary>
-                <button type="button" className="ghost" onClick={() => remove(habit.id)}>confirm</button>
-              </details>
+            <div className="meta">
+              <span />
+              <div className="actions">
+                <details>
+                  <summary className="icon-btn" aria-label="Edit"><Pencil size={16} strokeWidth={1.5} /></summary>
+                  <Rename id={habit.id} name={habit.name} onDone={(name) => {
+                    start(async () => {
+                      update({ type: "rename", id: habit.id, name })
+                      const result = await renameHabitAction(habit.id, name)
+                      setProblem(result?.error ? errors[result.error] ?? "Unavailable" : "")
+                    })
+                  }} />
+                </details>
+                <details>
+                  <summary className="icon-btn" aria-label="Delete"><Trash2 size={16} strokeWidth={1.5} /></summary>
+                  <div className="pop-body">
+                    <p className="dim">Delete this habit?</p>
+                    <button type="button" className="ghost" onClick={() => remove(habit.id)}>Delete</button>
+                  </div>
+                </details>
+              </div>
             </div>
           </article>
         )
@@ -96,18 +113,18 @@ function Rename({ id, name, onDone }: { id: string; name: string; onDone: (name:
   const [value, setValue] = useState(name)
   return (
     <form
-      className="stack"
+      className="pop-body"
       onSubmit={(event) => {
         event.preventDefault()
         onDone(value)
       }}
     >
       <input type="hidden" name="id" value={id} />
-      <label className="field">
-        <span className="label">habit</span>
-        <input name="name" type="text" required maxLength={40} value={value} onChange={(event) => setValue(event.target.value)} autoComplete="off" />
-      </label>
-      <button className="primary" type="submit">save</button>
+      <label className="field-label" htmlFor={`name-${id}`}>Name</label>
+      <div className="bar-input">
+        <input id={`name-${id}`} name="name" type="text" required maxLength={40} value={value} onChange={(event) => setValue(event.target.value)} autoComplete="off" placeholder="Walk" />
+        <button className="primary" type="submit">Save</button>
+      </div>
     </form>
   )
 }
