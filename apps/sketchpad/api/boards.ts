@@ -1,4 +1,4 @@
-import { handleBoards } from '../src/server/boards'
+import { handleBoards } from '../src/server/boards.js'
 
 export function GET(request: Request) {
   return handleBoards(request)

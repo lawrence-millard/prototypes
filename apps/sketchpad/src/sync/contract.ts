@@ -8,7 +8,7 @@ import {
   MAX_TEXT,
   MIN_COORD,
   MIN_SHAPE,
-} from '../model/constants'
+} from '../model/constants.js'
 
 const idSchema = z.string().regex(/^[A-Za-z0-9_-]{1,80}$/)
 const colorSchema = z.string().regex(/^#[0-9a-fA-F]{6}$/)

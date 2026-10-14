@@ -1,6 +1,6 @@
 import { verifyToken } from '@clerk/backend'
 import { neon, type NeonQueryFunction } from '@neondatabase/serverless'
-import { pushSchema, remoteBoardSchema, type PushChange, type RemoteBoard } from '../sync/contract'
+import { pushSchema, remoteBoardSchema, type PushChange, type RemoteBoard } from '../sync/contract.js'
 
 const PARTIES = [
   'https://sketch.millard.ink',
