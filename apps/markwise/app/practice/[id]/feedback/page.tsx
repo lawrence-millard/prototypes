@@ -41,35 +41,27 @@ async function Feedback({ params }: { params: Promise<{ id: string }> }) {
         <div className="flex gap-3">
           <Link
             href={`/tutor?attempt=${page.attempt.id}`}
-            className="flex h-[52px] flex-1 items-center justify-center rounded-full border border-black/10 bg-white text-[16px] font-semibold"
+            className="flex h-[52px] flex-1 items-center justify-center rounded-[8px] border border-line bg-surface text-[16px] font-medium"
           >
-            Ask tutor
+            Tutor
           </Link>
           <Link
             href={`/practice/${id}`}
-            className="flex h-[52px] flex-[1.15] items-center justify-center rounded-full bg-brand text-[16px] font-semibold text-white"
+            className="flex h-[52px] flex-[1.15] items-center justify-center rounded-[8px] bg-brand text-[16px] font-medium text-on-brand"
           >
             Rewrite
           </Link>
         </div>
       }
     >
-      <p className="text-[14px] text-mute">
-        {result.mode === "levels"
-          ? `Marked with ${scheme} levels mark scheme`
-          : "Marked against the points for this question"}
-      </p>
-      <p className="mt-1 text-[12px] font-semibold uppercase tracking-wide text-mute">
-        {result.source === "rules" ? "Mark scheme" : result.source === "mock" ? "Practice marker" : "AI estimate"}
-        {result.cached ? " · saved result" : ""}
-      </p>
-      <section className="mt-4 rounded-[22px] bg-white p-4 shadow-[0_8px_28px_rgba(40,32,80,0.05)]">
+      <p className="label">{scheme}</p>
+      <section className="mt-4 rounded-[10px] border border-line bg-surface p-4">
         <div className="flex items-start justify-between gap-3">
-          <p className={`text-[40px] font-semibold leading-none ${scoreClass[tone]}`}>
+          <p className={`text-[40px] font-medium leading-none ${scoreClass[tone]}`}>
             {result.total} <span className="text-[28px] font-medium text-mute">/ {result.marks}</span>
           </p>
           {result.mode === "levels" ? (
-            <span className="rounded-full bg-[#fff3df] px-3 py-1 text-[13px] font-semibold text-[#e0a23a]">
+            <span className="rounded-[8px] border border-line bg-surface px-3 py-1 text-[13px] font-medium text-mute">
               Level {result.level} of {result.maxLevel}
             </span>
           ) : null}
@@ -78,8 +70,8 @@ async function Feedback({ params }: { params: Promise<{ id: string }> }) {
         <FlagButton attemptId={page.attempt.id} flagged={page.attempt.flagged} />
       </section>
       {result.ao.length > 0 ? <AoCard result={result} /> : null}
-      <section className="mt-3 rounded-[22px] bg-tip p-4">
-        <p className="text-[15px] font-semibold text-tip-title">
+      <section className="mt-3 rounded-[10px] bg-tip p-4">
+        <p className="text-[15px] font-medium text-tip-title">
           {result.mode === "levels" && result.level < result.maxLevel ? `To reach Level ${result.level + 1}` : "Next step"}
         </p>
         <p className="mt-2 text-[15px] leading-6 text-ink">{result.nextLevelTip}</p>
@@ -90,8 +82,8 @@ async function Feedback({ params }: { params: Promise<{ id: string }> }) {
 
 function AoCard({ result }: { result: MarkResult }) {
   return (
-    <section className="mt-3 rounded-[22px] bg-white p-4 shadow-[0_8px_28px_rgba(40,32,80,0.05)]">
-      <h2 className="text-[16px] font-semibold">{result.mode === "levels" ? "Assessment objectives" : "Points"}</h2>
+    <section className="mt-3 rounded-[10px] border border-line bg-surface p-4">
+      <h2 className="text-[16px] font-medium">{result.mode === "levels" ? "Assessment objectives" : "Points"}</h2>
       <div className="mt-4 flex flex-col gap-4">
         {result.ao.map((row) => {
           const ratio = row.max === 0 ? 0 : row.awarded / row.max;
@@ -100,16 +92,16 @@ function AoCard({ result }: { result: MarkResult }) {
           return (
             <div key={row.code}>
               <div className="flex items-baseline justify-between gap-3">
-                <p className="font-semibold">
+                <p className="font-medium">
                   {row.code} {row.name}
                 </p>
-                <p className={`font-semibold ${text}`}>
+                <p className={`font-medium ${text}`}>
                   {row.awarded}/{row.max}
                 </p>
               </div>
               <p className="mt-1 text-[14px] text-mute">{row.comment}</p>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-line" role="progressbar" aria-valuenow={row.awarded} aria-valuemax={row.max}>
-                <div className={`h-full rounded-full ${color}`} style={{ width: `${Math.round(ratio * 100)}%` }} />
+              <div className="mt-2 h-1.5 overflow-hidden rounded-[8px] bg-line" role="progressbar" aria-valuenow={row.awarded} aria-valuemax={row.max}>
+                <div className={`h-full rounded-[8px] ${color}`} style={{ width: `${Math.round(ratio * 100)}%` }} />
               </div>
             </div>
           );

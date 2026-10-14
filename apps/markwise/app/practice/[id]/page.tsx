@@ -48,7 +48,7 @@ async function Practice({
         commandWord={page.question.commandWord}
         defaultAnswer={page.draft}
         error={error}
-        notice={saved ? "Draft saved on this account." : undefined}
+        notice={saved ? "Saved." : undefined}
       />
     </Screen>
   );

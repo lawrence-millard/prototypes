@@ -5,7 +5,7 @@ import { SUBJECTS } from "@/lib/subjects";
 import { DynamicScreen, Screen } from "@/components/screen";
 import { TutorChat } from "@/components/tutor-chat";
 
-export const metadata = { title: "Ask Markwise" };
+export const metadata = { title: "Tutor" };
 
 export default function Page({
   searchParams,

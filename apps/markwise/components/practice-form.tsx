@@ -39,14 +39,14 @@ export function PracticeForm({
     >
       <input type="hidden" name="questionId" value={questionId} />
       <p className="text-[14px] text-mute">{breadcrumb}</p>
-      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-line" aria-hidden>
-        <div className="h-full rounded-full bg-brand" style={{ width: `${fill}%` }} />
+      <div className="mt-3 h-1.5 overflow-hidden rounded-[8px] bg-line" aria-hidden>
+        <div className="h-full rounded-[8px] bg-brand" style={{ width: `${fill}%` }} />
       </div>
-      <article className="mt-4 rounded-[22px] bg-white p-4 shadow-[0_8px_28px_rgba(40,32,80,0.05)]">
+      <article className="mt-4 rounded-[10px] border border-line bg-surface p-4">
         <div className="flex flex-wrap gap-2">
-          <span className="rounded-full bg-brand-soft px-3 py-1 text-[13px] font-semibold text-brand">{marks} marks</span>
+          <span className="rounded-[8px] bg-brand-soft px-3 py-1 text-[13px] font-medium text-brand">{marks} marks</span>
           {commandWord ? (
-            <span className="rounded-full bg-[#fff1dc] px-3 py-1 text-[13px] font-semibold text-[#e39a32]">{commandWord}</span>
+            <span className="rounded-[8px] bg-surface px-3 py-1 text-[13px] font-medium text-ink">{commandWord}</span>
           ) : null}
         </div>
         {stem.split("\n\n").map((paragraph) => (
@@ -55,7 +55,7 @@ export function PracticeForm({
           </p>
         ))}
       </article>
-      <label className="mt-4 block flex-1 rounded-[22px] bg-white p-4 shadow-[0_8px_28px_rgba(40,32,80,0.05)]">
+      <label className="mt-4 block flex-1 rounded-[10px] border border-line bg-surface p-4">
         <span className="text-[14px] text-mute">Your answer</span>
         <textarea
           name="answer"
@@ -64,7 +64,7 @@ export function PracticeForm({
           required
           maxLength={8000}
           className="mt-2 min-h-[148px] w-full resize-none bg-transparent text-[16px] leading-7 text-ink outline-none"
-          placeholder="Write in context. For the top level, weigh both sides and decide."
+          placeholder="Answer"
         />
       </label>
       {notice ? <p className="mt-3 text-[14px] text-mute">{notice}</p> : null}
@@ -76,7 +76,7 @@ export function PracticeForm({
           value="draft"
           formAction="/api/drafts"
           disabled={pending !== null}
-          className="flex h-[52px] flex-1 items-center justify-center rounded-full border border-black/10 bg-white text-[16px] font-semibold text-ink disabled:opacity-60"
+          className="flex h-[52px] flex-1 items-center justify-center rounded-[8px] border border-line bg-surface text-[16px] font-medium text-ink disabled:opacity-60"
         >
           {pending === "draft" ? "Saving…" : "Save draft"}
         </button>
@@ -85,7 +85,7 @@ export function PracticeForm({
           name="intent"
           value="mark"
           disabled={pending !== null}
-          className="flex h-[52px] flex-[1.25] items-center justify-center rounded-full bg-brand text-[16px] font-semibold text-white disabled:opacity-60"
+          className="flex h-[52px] flex-[1.25] items-center justify-center rounded-[8px] bg-brand text-[16px] font-medium text-on-brand disabled:opacity-60"
         >
           {pending === "mark" ? "Marking…" : "Mark my answer"}
         </button>

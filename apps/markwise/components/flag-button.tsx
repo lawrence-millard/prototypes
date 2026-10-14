@@ -19,8 +19,8 @@ export function FlagButton({ attemptId, flagged }: { attemptId: string; flagged:
   }
 
   return (
-    <button type="button" onClick={onClick} className="mt-3 text-[13px] font-semibold text-brand">
-      {done ? "Flagged as a disagreement" : pending ? "Flagging…" : "Disagree with this mark? Flag it"}
+    <button type="button" onClick={onClick} className="mt-3 text-[13px] font-medium text-brand">
+      {done ? "Flagged" : pending ? "Flagging" : "Flag mark"}
     </button>
   );
 }

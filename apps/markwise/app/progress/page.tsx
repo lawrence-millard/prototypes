@@ -6,7 +6,7 @@ import { progressForUser } from "@/lib/queries";
 import { SUBJECTS } from "@/lib/subjects";
 import { DynamicScreen, Screen } from "@/components/screen";
 
-export const metadata = { title: "Your progress" };
+export const metadata = { title: "Progress" };
 
 const bar = {
   bad: "bg-bad",
@@ -33,31 +33,30 @@ async function Progress() {
         progress.focus ? (
           <Link
             href={progress.focus.href}
-            className="flex h-[52px] w-full items-center justify-center rounded-full bg-brand px-4 text-center text-[16px] font-semibold text-white"
+            className="flex h-[52px] w-full items-center justify-center rounded-[8px] bg-brand px-4 text-center text-[16px] font-medium text-on-brand"
           >
             {progress.focus.label}
           </Link>
         ) : null
       }
     >
-      <h1 className="text-[32px] font-bold tracking-tight">Your progress</h1>
-      <p className="mt-2 text-[15px] text-mute">Predicted vs target A Level grades</p>
-      <section className="mt-5 rounded-[22px] bg-white px-4 py-4 shadow-[0_8px_28px_rgba(40,32,80,0.05)]">
+      <h1 className="text-[26px] tracking-tight">Progress</h1>
+      <section className="mt-5 rounded-[10px] border border-line bg-surface px-4 py-4">
         <div className="flex flex-col gap-3">
           {progress.grades.map((grade) => (
             <p key={grade.subject} className="flex items-center justify-between text-[16px]">
               <span>{grade.label}</span>
-              <span className="font-semibold">
+              <span className="font-medium">
                 {grade.predicted} → target {grade.target}
               </span>
             </p>
           ))}
         </div>
       </section>
-      <section className="mt-3 rounded-[22px] bg-white px-4 py-4 shadow-[0_8px_28px_rgba(40,32,80,0.05)]">
+      <section className="mt-3 rounded-[10px] border border-line bg-surface px-4 py-4">
         <h2 className="text-[14px] text-mute">Weakest topics</h2>
         {progress.weakest.length === 0 ? (
-          <p className="mt-3 text-[15px] leading-6">Practise a topic and your mastery will show up here.</p>
+          <p className="mt-3 text-[15px]">No topics yet.</p>
         ) : (
           <div className="mt-4 flex flex-col gap-4">
             {progress.weakest.map((topic) => {
@@ -70,10 +69,10 @@ async function Progress() {
                       <span className="text-mute">{SUBJECTS[topic.subject].label} · </span>
                       <span className="font-medium">{topic.name}</span>
                     </span>
-                    <span className="font-semibold">{value}%</span>
+                    <span className="font-medium">{value}%</span>
                   </p>
-                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-line" role="progressbar" aria-valuenow={value} aria-valuemax={100}>
-                    <div className={`h-full rounded-full ${bar[tone]}`} style={{ width: `${value}%` }} />
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-[8px] bg-line" role="progressbar" aria-valuenow={value} aria-valuemax={100}>
+                    <div className={`h-full rounded-[8px] ${bar[tone]}`} style={{ width: `${value}%` }} />
                   </div>
                 </div>
               );

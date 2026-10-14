@@ -36,27 +36,23 @@ async function Mock({ params }: { params: Promise<{ id: string }> }) {
       footer={
         <Link
           href={`/practice/${ordered[0]?.id ?? ""}?mock=1`}
-          className="flex h-[52px] w-full items-center justify-center rounded-full bg-brand text-[16px] font-semibold text-white"
+          className="flex h-[52px] w-full items-center justify-center rounded-[8px] bg-brand text-[16px] font-medium text-on-brand"
         >
           Start paper
         </Link>
       }
     >
-      <p className="text-[14px] text-mute">Timed practice</p>
-      <h1 className="mt-2 text-[32px] font-bold leading-tight tracking-tight">{POLITICS_MOCK.title}</h1>
-      <p className="mt-3 text-[15px] text-mute">
+      <p className="label">Mock</p>
+      <h1 className="mt-2 text-[26px] tracking-tight">{POLITICS_MOCK.title}</h1>
+      <p className="mt-3 text-[14px] text-mute">
         {formatShortDate(resolveMockDate(POLITICS_MOCK.anchorDate, now))} · {formatDuration(POLITICS_MOCK.minutes)} ·{" "}
         {POLITICS_MOCK.marks} marks
       </p>
-      <p className="mt-4 text-[15px] leading-6 text-ink">
-        Three original questions in the style of Paper 1: a source, a UK government essay, and a political ideas essay.
-        This build does not lock the clock. Mark each answer when you are ready.
-      </p>
       <ol className="mt-5 flex flex-col gap-3">
         {ordered.map((question, index) => (
-          <li key={question.id} className="rounded-[22px] bg-white px-4 py-4">
-            <p className="text-[13px] font-semibold text-mute">Question {index + 1}</p>
-            <p className="mt-1 text-[16px] font-semibold">
+          <li key={question.id} className="rounded-[10px] border border-line bg-surface px-4 py-4">
+            <p className="text-[13px] font-medium text-mute">Question {index + 1}</p>
+            <p className="mt-1 text-[16px] font-medium">
               {question.commandWord} · {question.marks} marks
             </p>
           </li>

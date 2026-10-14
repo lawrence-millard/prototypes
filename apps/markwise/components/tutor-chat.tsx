@@ -69,32 +69,25 @@ export function TutorChat({
 
   return (
     <div className="flex flex-1 flex-col">
-      <h1 className="text-[32px] font-bold tracking-tight">Ask Markwise</h1>
-      <p className="mt-1 text-[15px] text-mute">
+      <h1 className="text-[26px] tracking-tight">Tutor</h1>
+      <p className="mt-1 text-[14px] text-mute">
         {subjectLabel} · {specLabel} · {topicName}
       </p>
       <div className="mt-5 flex flex-1 flex-col gap-3">
-        {messages.length === 0 ? (
-          <p className="rounded-[20px] bg-white px-4 py-3 text-[15px] leading-6 text-ink">
-            Ask about this topic. I will give you a hint, not the essay.
-          </p>
-        ) : null}
         {messages.map((message) => (
           <p
             key={message.id}
             className={
               message.role === "user"
-                ? "ml-auto max-w-[88%] rounded-[20px] bg-brand px-4 py-3 text-[15px] leading-6 text-white"
-                : "mr-auto max-w-[88%] rounded-[20px] bg-white px-4 py-3 text-[15px] leading-6 text-ink shadow-[0_8px_28px_rgba(40,32,80,0.04)]"
+                ? "ml-auto max-w-[88%] rounded-[10px] bg-brand px-4 py-3 text-[15px] leading-6 text-on-brand"
+                : "mr-auto max-w-[88%] rounded-[10px] border border-line bg-surface px-4 py-3 text-[15px] leading-6 text-ink "
             }
           >
             {message.content || (pending ? "…" : "")}
           </p>
         ))}
       </div>
-      <p className="mt-4 text-[12px] leading-5 text-mute">
-        Hints only, never a full essay. If you are in crisis: Childline 0800 1111 · Samaritans 116 123.
-      </p>
+      <p className="mt-4 text-[12px] leading-5 text-mute">Crisis: Childline 0800 1111, Samaritans 116 123.</p>
       {error ? <p className="mt-2 text-[14px] text-bad">{error}</p> : null}
       <form onSubmit={onSubmit} className="mt-3">
         <label className="sr-only" htmlFor="tutor-message">
@@ -105,8 +98,8 @@ export function TutorChat({
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           maxLength={2000}
-          placeholder="Ask about any topic..."
-          className="h-[52px] w-full rounded-[18px] bg-white px-4 text-[15px] text-ink outline-none ring-1 ring-black/5 placeholder:text-mute"
+          placeholder="Message"
+          className="h-[52px] w-full rounded-[8px] border border-line bg-surface px-4 text-[15px] text-ink outline-none border border-line placeholder:text-mute"
         />
       </form>
     </div>

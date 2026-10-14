@@ -37,6 +37,8 @@ async function init() {
       await sql.query(statement);
     }
     globalForDb.markwiseDb = drizzle({ client: sql, schema }) as unknown as Database;
+  } else if (process.env.VERCEL) {
+    throw new Error("DATABASE_URL is required");
   } else {
     const { PGlite } = await import("@electric-sql/pglite");
     const { drizzle } = await import("drizzle-orm/pglite");

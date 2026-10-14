@@ -53,7 +53,7 @@ describe("daily plan", () => {
     expect(plan.tasks.map((task) => task.label)).toEqual(["Weak", "Review", "New"]);
     expect(plan.tasks[0].meta).toBe("Psychology · 16-mark essay · weak topic");
     expect(plan.tasks[1].meta).toBe("Business · 12-mark ‘Assess’ question");
-    expect(plan.tasks[2].meta).toBe("Politics · 10-question quick quiz");
+    expect(plan.tasks[2].meta).toBe("Politics · 10 questions");
     expect(plan.minutes).toBe(40);
   });
 });

@@ -89,7 +89,7 @@ export function buildDailyPlan(topics: PlanTopic[]) {
     tasks.push({
       href: `/practice/quiz/${quiz.quiz.slug}`,
       title: quiz.planTitle,
-      meta: `${SUBJECTS[quiz.subject].label} · ${quiz.quiz.count}-question quick quiz`,
+      meta: `${SUBJECTS[quiz.subject].label} · ${quiz.quiz.count} questions`,
       label: "New",
       minutes: quiz.quiz.count,
     });
