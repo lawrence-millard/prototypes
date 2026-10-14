@@ -1,0 +1,31 @@
+{
+  "name": "poll",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "node --experimental-strip-types --test tests/*.test.ts",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@clerk/nextjs": "^7.9.14",
+    "@fontsource/geist-mono": "^5.2.7",
+    "@fontsource/open-runde": "^5.2.8",
+    "@neondatabase/serverless": "^1.2.0",
+    "next": "16.4.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "^0.0.1",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@playwright/test": "^1.56.1",
+    "typescript": "^5"
+  }
+}
