@@ -17,7 +17,6 @@ export function Sidebar({
       <Link href="/" prefetch={false} className="mark">
         <strong>Hookbox</strong>
       </Link>
-      <p className="eyebrow">Private inbox</p>
       <Link href="/#create" prefetch={false} className="primary new-hook">
         New webhook
       </Link>

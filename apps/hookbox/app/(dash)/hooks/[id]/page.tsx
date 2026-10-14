@@ -33,14 +33,14 @@ export default async function WebhookPage({ params }: { params: Promise<{ id: st
         <summary>Delete webhook</summary>
         <form action={deleteWebhookAction}>
           <input type="hidden" name="id" value={webhook.id} />
-          <p className="lede">This deletes the webhook and every message it has received.</p>
+          <p className="lede">Deletes this webhook and its messages.</p>
           <button className="danger" type="submit">
             Delete permanently
           </button>
         </form>
       </details>
       {messages.length === 0 ? (
-        <p className="empty">No messages yet. Send a POST to the URL you copied when this webhook was created.</p>
+        <p className="empty">No messages.</p>
       ) : (
         <section>
           <p className="slug">Newest {Math.min(messages.length, MESSAGE_PAGE_SIZE)}</p>

@@ -7,8 +7,7 @@ export function RevealUrl({ url }: { url: string }) {
   return (
     <div className="reveal">
       <p>
-        Copy this URL now. Hookbox stores only a hash of the token, so this is the only time it
-        can be shown.
+        Shown once.
       </p>
       <div className="copy-row">
         <input

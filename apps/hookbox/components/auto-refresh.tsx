@@ -3,13 +3,14 @@
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
-export function AutoRefresh({ ms = 5000 }: { ms?: number }) {
+export function AutoRefresh() {
   const router = useRouter()
   useEffect(() => {
-    const id = window.setInterval(() => {
+    const refresh = () => {
       if (document.visibilityState === 'visible') router.refresh()
-    }, ms)
-    return () => window.clearInterval(id)
-  }, [router, ms])
-  return <p className="live">Refreshing every {Math.round(ms / 1000)}s</p>
+    }
+    document.addEventListener('visibilitychange', refresh)
+    return () => document.removeEventListener('visibilitychange', refresh)
+  }, [router])
+  return null
 }

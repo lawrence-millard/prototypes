@@ -20,9 +20,7 @@ export default async function LoginPage({
         <section className="login-card">
           <div className="mark">
             <strong>Hookbox</strong>
-            <span>private</span>
           </div>
-          <p className="lede">One inbox for the webhooks you create. Nothing here is public.</p>
           <LoginForm />
         </section>
       </main>

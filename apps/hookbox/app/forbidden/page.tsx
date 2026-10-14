@@ -24,15 +24,9 @@ export default async function ForbiddenPage() {
       <section className="login-card">
         <div className="mark">
           <strong>Hookbox</strong>
-          <span>private</span>
         </div>
         <h1>Not allowed</h1>
-        <p className="lede">
-          {email
-            ? `${email} is signed in, but that address is not allowed to open Hookbox.`
-            : 'This account is not allowed to open Hookbox.'}{' '}
-          The address has to be verified.
-        </p>
+        <p className="lede">{email ? `${email} is not on the list.` : 'This account is not on the list.'}</p>
         {userId ? <ClerkSignOut /> : <Link href="/login">Sign in</Link>}
       </section>
     </main>

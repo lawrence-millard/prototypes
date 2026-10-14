@@ -10,10 +10,13 @@
     "build": "next build",
     "start": "next start",
     "test": "tsx --test tests/*.test.ts",
+    "test:e2e": "playwright test",
     "hash-password": "node scripts/hash-password.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.14",
+    "@fontsource/geist-mono": "^5.3.0",
+    "@fontsource/open-runde": "^5.3.0",
     "@neondatabase/serverless": "^1.2.0",
     "bcryptjs": "^3.0.3",
     "next": "^16.4.0",
@@ -22,6 +25,7 @@
     "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@types/node": "^26.6.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",

@@ -14,9 +14,6 @@ export default async function HomePage() {
           <h1>Webhooks</h1>
         </div>
       </header>
-      <p className="lede">
-        Name a webhook and Hookbox will give you a Discord-compatible URL. The token is shown once.
-      </p>
       <section className="index-card">
         <CreateWebhookForm />
       </section>
