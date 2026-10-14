@@ -1,7 +1,9 @@
 import { ClerkFailed, ClerkLoaded, ClerkLoading, ClerkProvider, SignIn, useAuth } from '@clerk/clerk-react'
 import { useEffect, type ReactNode } from 'react'
 import { bindSync } from '../sync/client'
-import { FullScreenMessage } from '../ui/messages'
+import { SignedOutLanding } from '../ui/Landing'
+import { useTheme } from '../ui/ThemeToggle'
+import { clerkAppearance } from './appearance'
 import { OwnerProvider } from './session'
 
 export default function ClerkGate({
@@ -14,13 +16,10 @@ export default function ClerkGate({
   return (
     <ClerkProvider publishableKey={publishableKey}>
       <ClerkLoading>
-        <FullScreenMessage title="Sign in" body="Loading." />
+        <SignedOutLanding auth={<p className="auth-note">Loading.</p>} />
       </ClerkLoading>
       <ClerkFailed>
-        <FullScreenMessage
-          title="Sign-in failed"
-          body="Check the publishable key."
-        />
+        <SignedOutLanding auth={<p className="auth-note">Sign-in failed. Check the publishable key.</p>} />
       </ClerkFailed>
       <ClerkLoaded>
         <ClerkSession>{children}</ClerkSession>
@@ -48,26 +47,17 @@ function ClerkSession({ children }: { children: ReactNode }) {
 }
 
 function SignInScreen() {
+  const theme = useTheme()
   return (
-    <main className="signin">
-      <p className="brand-name">Sketchpad</p>
-      <SignIn
-        routing="virtual"
-        fallbackRedirectUrl="/"
-        forceRedirectUrl="/"
-        appearance={{
-          variables: {
-            colorPrimary: '#0b0b0b',
-            colorBackground: '#f6f6f6',
-            colorText: '#0b0b0b',
-            colorInputBackground: '#f6f6f6',
-            colorInputText: '#0b0b0b',
-            colorNeutral: '#5a5a5a',
-            borderRadius: '8px',
-            fontFamily: '"Open Runde", "SF Pro", ui-sans-serif, system-ui, sans-serif',
-          },
-        }}
-      />
-    </main>
+    <SignedOutLanding
+      auth={
+        <SignIn
+          routing="virtual"
+          fallbackRedirectUrl="/"
+          forceRedirectUrl="/"
+          appearance={clerkAppearance(theme === 'dark')}
+        />
+      }
+    />
   )
 }

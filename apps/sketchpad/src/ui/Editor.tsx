@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Download, Keyboard, Redo2, Undo2 } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { getBoard, putBoard } from '../db/database'
 import { createAutosave, saveStatusLabel, type SaveStatus } from '../model/autosave'
 import {
@@ -21,6 +22,8 @@ import type { Board, Bounds, Handle, Point, Tool } from '../model/types'
 import { Canvas } from './Canvas'
 import { ExportDialog } from './ExportDialog'
 import { HelpDialog } from './HelpDialog'
+import { AccountButton } from './AccountButton'
+import { SyncStatus } from './SyncStatus'
 import { Toolbar } from './Toolbar'
 import { storageMessage } from './messages'
 
@@ -409,7 +412,7 @@ export function Editor({
       <div className="editor-bar">
         <button type="button" onClick={() => void leave()}>Boards</button>
         <div className="name-field">
-          <label htmlFor="board-name">Board name</label>
+          <label className="sr-only" htmlFor="board-name">Board name</label>
           <input
             id="board-name"
             value={nameDraft}
@@ -436,16 +439,22 @@ export function Editor({
             }}
           />
         </div>
-        <button type="button" onClick={() => applyHistory(undoHistory(historyRef.current ?? history))} disabled={history.past.length === 0}>
-          Undo
-        </button>
-        <button type="button" onClick={() => applyHistory(redoHistory(historyRef.current ?? history))} disabled={history.future.length === 0}>
-          Redo
-        </button>
-        <button type="button" onClick={() => setExportOpen(true)}>Export</button>
-        <button type="button" aria-label="Keyboard shortcuts" aria-keyshortcuts="?" onClick={() => setHelpOpen(true)}>
-          Shortcuts
-        </button>
+        <div className="editor-actions">
+          <IconAction label="Undo" shortcut="Ctrl Z" disabled={history.past.length === 0} onClick={() => applyHistory(undoHistory(historyRef.current ?? history))}>
+            <Undo2 size={16} strokeWidth={1.75} aria-hidden="true" />
+          </IconAction>
+          <IconAction label="Redo" shortcut="Ctrl Shift Z" disabled={history.future.length === 0} onClick={() => applyHistory(redoHistory(historyRef.current ?? history))}>
+            <Redo2 size={16} strokeWidth={1.75} aria-hidden="true" />
+          </IconAction>
+          <IconAction label="Export" onClick={() => setExportOpen(true)}>
+            <Download size={16} strokeWidth={1.75} aria-hidden="true" />
+          </IconAction>
+          <IconAction label="Keyboard shortcuts" shortcut="?" onClick={() => setHelpOpen(true)}>
+            <Keyboard size={16} strokeWidth={1.75} aria-hidden="true" />
+          </IconAction>
+          <SyncStatus />
+          <AccountButton />
+        </div>
       </div>
       {nameError ? <p className="banner banner-error" role="alert">{nameError}</p> : null}
       {notice ? <p className="banner" role="status">{notice}</p> : null}
@@ -472,7 +481,7 @@ export function Editor({
           onPointerMovePoint={onPointerMove}
           onPointerUpPoint={onPointerUp}
         />
-        <aside className="inspector" aria-label="Shape properties">
+        <aside className={selected || connectFrom ? 'inspector' : 'inspector inspector-idle'} aria-label="Shape properties">
           {selected ? (
             <>
               <h2>{selected.kind}</h2>
@@ -532,10 +541,7 @@ export function Editor({
               </button>
             </>
           ) : (
-            <>
-              <h2>Inspector</h2>
-              <p>No shape selected. Choose Select, then click a shape. Or press V, R, E, D, T, or C.</p>
-            </>
+            <p className="inspector-empty">No shape selected.</p>
           )}
           {connectFrom ? <p>Connecting. Click another shape, or press Escape to cancel.</p> : null}
         </aside>
@@ -554,5 +560,36 @@ export function Editor({
       ) : null}
       {helpOpen ? <HelpDialog onClose={() => setHelpOpen(false)} /> : null}
     </div>
+  )
+}
+
+function IconAction({
+  label,
+  shortcut,
+  disabled,
+  onClick,
+  children,
+}: {
+  label: string
+  shortcut?: string
+  disabled?: boolean
+  onClick: () => void
+  children: ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      className="icon-btn"
+      aria-label={label}
+      aria-keyshortcuts={shortcut}
+      disabled={disabled}
+      onClick={onClick}
+    >
+      {children}
+      <span className="tip">
+        {label}
+        {shortcut ? <kbd>{shortcut}</kbd> : null}
+      </span>
+    </button>
   )
 }

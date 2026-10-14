@@ -1,15 +1,11 @@
-import { Component, lazy, Suspense, useState, type ReactNode } from 'react'
+import { Component, useState, type ReactNode } from 'react'
 import { AuthGate } from './auth/AuthGate'
 import { useSession } from './auth/session'
+import { AccountButton } from './ui/AccountButton'
 import { Editor } from './ui/Editor'
 import { Library } from './ui/Library'
 import { FullScreenMessage } from './ui/messages'
 import { ThemeToggle } from './ui/ThemeToggle'
-
-const UserButton = lazy(async () => {
-  const module = await import('@clerk/clerk-react')
-  return { default: module.UserButton }
-})
 
 type View = { kind: 'library' } | { kind: 'editor'; boardId: string; notice?: string }
 
@@ -45,19 +41,21 @@ function Shell({ editor, children }: { editor: boolean; children: ReactNode }) {
       <a className="skip" href={editor ? '#canvas' : '#boards'}>
         {editor ? 'Skip to canvas' : 'Skip to boards'}
       </a>
-      <header className="topbar">
-        <div className="brand">
-          <span className="mark" aria-hidden="true" />
-          <span className="brand-name">Sketchpad</span>
-        </div>
-        <div className="top-actions">
-          {session.mode === 'clerk' ? (
-            <Suspense fallback={<span className="user-fallback">Account</span>}>
-              <UserButton />
-            </Suspense>
-          ) : null}
-        </div>
-      </header>
+      {editor ? null : (
+        <header className="topbar">
+          <div className="brand">
+            <svg className="mark" viewBox="0 0 38 38" aria-hidden="true">
+              <rect x="0.5" y="0.5" width="37" height="37" rx="8" fill="none" stroke="currentColor" />
+              <rect x="8" y="14" width="14" height="10" rx="2" fill="none" stroke="currentColor" strokeWidth="1.5" />
+              <circle cx="26" cy="16" r="4" fill="none" stroke="currentColor" strokeWidth="1.5" />
+            </svg>
+            <span className="brand-name">Sketchpad</span>
+          </div>
+          <div className="top-actions">
+            {session.mode === 'clerk' ? <AccountButton /> : null}
+          </div>
+        </header>
+      )}
       {children}
     </div>
   )

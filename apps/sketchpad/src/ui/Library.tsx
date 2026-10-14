@@ -1,16 +1,16 @@
-import { useEffect, useState } from 'react'
+import { MoreHorizontal } from 'lucide-react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { deleteBoard, deleteSampleBoards, loadLibrary, putBoard } from '../db/database'
 import { syncOnLoad } from '../sync/client'
 import { createBoard, renameBoard } from '../model/board'
 import { createSampleBoard } from '../model/sample'
 import type { Board } from '../model/types'
+import { BoardThumb } from './BoardThumb'
 import { Dialog } from './Dialog'
 import { ImportDialog } from './ImportDialog'
 import { storageMessage } from './messages'
-
-function formatUpdated(timestamp: number): string {
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(timestamp)
-}
+import { absoluteTime, relativeTime } from './relative-time'
+import { SyncStatus } from './SyncStatus'
 
 export function Library({
   ownerId,
@@ -30,6 +30,12 @@ export function Library({
   const [renamingId, setRenamingId] = useState<string | null>(null)
   const [renameValue, setRenameValue] = useState('')
   const [renameError, setRenameError] = useState<string | null>(null)
+  const [now, setNow] = useState(() => Date.now())
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 60_000)
+    return () => window.clearInterval(timer)
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -144,6 +150,7 @@ export function Library({
       <div className="page-head">
         <div>
           <h1>Boards</h1>
+          <SyncStatus />
         </div>
         <div className="page-actions">
           <button type="button" className="primary" onClick={() => void create()} disabled={!ready || pending}>
@@ -153,12 +160,12 @@ export function Library({
             Import JSON
           </button>
           {ready && hasSample ? (
-            <button type="button" className="danger-quiet" onClick={() => void removeSamples()} disabled={pending}>
+            <button type="button" className="quiet" onClick={() => void removeSamples()} disabled={pending}>
               Delete sample data
             </button>
           ) : null}
           {ready && !hasSample ? (
-            <button type="button" onClick={() => void addSample()} disabled={pending}>
+            <button type="button" className="quiet" onClick={() => void addSample()} disabled={pending}>
               Add sample board
             </button>
           ) : null}
@@ -182,11 +189,7 @@ export function Library({
 
       {ready && boards.length === 0 ? (
         <div className="empty">
-          <div className="empty-art" aria-hidden="true">
-            <span className="art-rect" />
-            <span className="art-line" />
-            <span className="art-ellipse" />
-          </div>
+          <PreviewEmpty />
           <h2>No boards</h2>
         </div>
       ) : null}
@@ -196,65 +199,60 @@ export function Library({
           {boards.map((board) => (
             <li key={board.id}>
               <article className="board-card">
-                <div className="card-top">
-                  {board.sample ? <span className="badge">Sample</span> : null}
-                  {renamingId === board.id ? (
-                    <form
-                      onSubmit={(event) => {
-                        event.preventDefault()
-                        void saveRename(board)
-                      }}
-                    >
-                      <label className="sr-only" htmlFor={`rename-${board.id}`}>
-                        New name for {board.name}
-                      </label>
-                      <input
-                        id={`rename-${board.id}`}
-                        value={renameValue}
-                        onChange={(event) => setRenameValue(event.target.value)}
-                        maxLength={80}
-                      />
-                      {renameError ? <p role="alert">{renameError}</p> : null}
-                      <div className="card-actions">
-                        <button type="submit" className="primary" disabled={pending}>Save name</button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setRenamingId(null)
-                            setRenameError(null)
-                          }}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </form>
-                  ) : (
-                    <h2>{board.name}</h2>
-                  )}
-                </div>
-                <p className="meta">
-                  {board.shapes.length} shapes · {board.connectors.length} connectors · Updated {formatUpdated(board.updatedAt)}
-                </p>
-                {renamingId === board.id ? null : (
-                  <div className="card-actions">
-                    <button type="button" className="primary" aria-label={`Open ${board.name}`} onClick={() => onOpen(board.id)}>
-                      Open
+                {renamingId === board.id ? (
+                  <form
+                    className="rename-form"
+                    onSubmit={(event) => {
+                      event.preventDefault()
+                      void saveRename(board)
+                    }}
+                  >
+                    <label className="sr-only" htmlFor={`rename-${board.id}`}>
+                      New name for {board.name}
+                    </label>
+                    <input
+                      id={`rename-${board.id}`}
+                      value={renameValue}
+                      onChange={(event) => setRenameValue(event.target.value)}
+                      maxLength={80}
+                      autoFocus
+                    />
+                    {renameError ? <p role="alert">{renameError}</p> : null}
+                    <div className="card-actions">
+                      <button type="submit" className="primary" disabled={pending}>Save name</button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRenamingId(null)
+                          setRenameError(null)
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <>
+                    <button type="button" className="card-hit" aria-label={`Open ${board.name}`} onClick={() => onOpen(board.id)}>
+                      <BoardThumb board={board} />
+                      <span className="card-copy">
+                        {board.sample ? <span className="badge">Sample</span> : null}
+                        <h2>{board.name}</h2>
+                        <span className="meta" title={absoluteTime(board.updatedAt)}>
+                          {relativeTime(board.updatedAt, now)} · {board.shapes.length} shapes
+                        </span>
+                      </span>
                     </button>
-                    <button
-                      type="button"
-                      aria-label={`Rename ${board.name}`}
-                      onClick={() => {
+                    <CardMenu
+                      name={board.name}
+                      onRename={() => {
                         setRenamingId(board.id)
                         setRenameValue(board.name)
                         setRenameError(null)
                       }}
-                    >
-                      Rename
-                    </button>
-                    <button type="button" className="danger-quiet" aria-label={`Delete ${board.name}`} onClick={() => setConfirmDelete(board)}>
-                      Delete
-                    </button>
-                  </div>
+                      onDelete={() => setConfirmDelete(board)}
+                    />
+                  </>
                 )}
               </article>
             </li>
@@ -287,5 +285,79 @@ export function Library({
         </Dialog>
       ) : null}
     </main>
+  )
+}
+
+function CardMenu({ name, onRename, onDelete }: { name: string; onRename: () => void; onDelete: () => void }) {
+  const [open, setOpen] = useState(false)
+  const rootRef = useRef<HTMLDivElement>(null)
+  const menuId = useId()
+
+  useEffect(() => {
+    if (!open) return
+    function onPointer(event: PointerEvent) {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false)
+    }
+    function onKey(event: KeyboardEvent) {
+      if (event.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('pointerdown', onPointer)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('pointerdown', onPointer)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  return (
+    <div className="card-menu" ref={rootRef}>
+      <button
+        type="button"
+        className="icon-btn"
+        aria-label={`Actions for ${name}`}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-controls={menuId}
+        onClick={() => setOpen((value) => !value)}
+      >
+        <MoreHorizontal size={16} strokeWidth={1.75} aria-hidden="true" />
+      </button>
+      {open ? (
+        <div className="menu" id={menuId} role="menu">
+          <button
+            type="button"
+            role="menuitem"
+            aria-label={`Rename ${name}`}
+            onClick={() => {
+              setOpen(false)
+              onRename()
+            }}
+          >
+            Rename
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            aria-label={`Delete ${name}`}
+            onClick={() => {
+              setOpen(false)
+              onDelete()
+            }}
+          >
+            Delete
+          </button>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+function PreviewEmpty() {
+  return (
+    <svg className="empty-art" viewBox="0 0 180 72" aria-hidden="true">
+      <rect x="8" y="16" width="64" height="40" rx="8" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <line x1="72" y1="36" x2="108" y2="36" stroke="currentColor" strokeWidth="1.5" />
+      <ellipse cx="142" cy="36" rx="30" ry="18" fill="none" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
   )
 }

@@ -17,6 +17,7 @@
     "@fontsource/geist-mono": "^5.3.0",
     "@fontsource/open-runde": "^5.3.0",
     "@neondatabase/serverless": "^1.2.0",
+    "lucide-react": "^0.545.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "zod": "^4.6.7"

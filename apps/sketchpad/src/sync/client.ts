@@ -25,9 +25,29 @@ let chain: Promise<void> = Promise.resolve()
 let onlineBound = false
 const dirty = new Map<string, Dirty>()
 
+export type SyncPhase = 'local' | 'syncing' | 'synced' | 'offline'
+
+let phase: SyncPhase = 'local'
+const phaseListeners = new Set<() => void>()
+
+function setPhase(next: SyncPhase): void {
+  phase = next
+  for (const listener of phaseListeners) listener()
+}
+
+export function subscribeSync(listener: () => void): () => void {
+  phaseListeners.add(listener)
+  return () => phaseListeners.delete(listener)
+}
+
+export function getSyncPhase(): SyncPhase {
+  return tokenSource ? phase : 'local'
+}
+
 export function bindSync(source: TokenSource | null): void {
   tokenSource = source
   setAfterWrite(source ? noteLocalWrite : null)
+  if (!source) setPhase('local')
   if (source && !onlineBound && typeof window !== 'undefined') {
     onlineBound = true
     window.addEventListener('online', () => {
@@ -38,6 +58,7 @@ export function bindSync(source: TokenSource | null): void {
 
 export function queueSync(ownerId: string): void {
   if (!tokenSource) return
+  setPhase('syncing')
   queuedOwner = ownerId
   lastOwner = ownerId
   if (timer) clearTimeout(timer)
@@ -51,6 +72,7 @@ export function queueSync(ownerId: string): void {
 
 export async function syncOnLoad(ownerId: string): Promise<void> {
   if (!tokenSource) return
+  setPhase('syncing')
   lastOwner = ownerId
   await enqueue(() => pullAndPush(ownerId))
 }
@@ -71,11 +93,15 @@ function enqueue(job: () => Promise<void>): Promise<void> {
 
 async function pullAndPush(ownerId: string): Promise<void> {
   const token = await tokenSource?.()
-  if (!token) return
+  if (!token) {
+    setPhase('offline')
+    return
+  }
   let remote: RemoteBoard[]
   try {
     remote = await getRemote(token)
   } catch {
+    setPhase('offline')
     return
   }
   const merged = mergeLibraries(await listBoards(ownerId), remote, await listTombstones(ownerId))
@@ -83,23 +109,32 @@ async function pullAndPush(ownerId: string): Promise<void> {
   for (const id of merged.dropTombstones) await clearTombstone(ownerId, id)
   if (merged.upserts.length === 0 && merged.deletes.length === 0) {
     clearDirty(ownerId)
+    setPhase('synced')
     return
   }
   try {
     await sendChanges(token, merged.upserts, merged.deletes)
     for (const tomb of merged.deletes) await clearTombstone(ownerId, tomb.id)
     clearDirty(ownerId)
+    setPhase('synced')
   } catch {
     for (const board of merged.upserts) dirty.set(`${ownerId}/${board.id}`, { ownerId, id: board.id, kind: 'upsert' })
     for (const tomb of merged.deletes) dirty.set(`${ownerId}/${tomb.id}`, { ownerId, id: tomb.id, kind: 'delete' })
+    setPhase('offline')
   }
 }
 
 async function pushDirty(ownerId: string): Promise<void> {
   const token = await tokenSource?.()
-  if (!token) return
+  if (!token) {
+    setPhase('offline')
+    return
+  }
   const pending = [...dirty.values()].filter((item) => item.ownerId === ownerId)
-  if (pending.length === 0) return
+  if (pending.length === 0) {
+    setPhase('synced')
+    return
+  }
   const boards: Board[] = []
   const deletes: Tombstone[] = []
   const tombs = await listTombstones(ownerId)
@@ -119,8 +154,9 @@ async function pushDirty(ownerId: string): Promise<void> {
       if (current && current.kind === item.kind) dirty.delete(`${ownerId}/${item.id}`)
     }
     for (const tomb of deletes) await clearTombstone(ownerId, tomb.id)
+    setPhase('synced')
   } catch {
-    return
+    setPhase('offline')
   }
 }
 

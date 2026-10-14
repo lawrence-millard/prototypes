@@ -15,9 +15,18 @@ test('core loop: boards, connect, autosave, export, and import', async ({ page }
     }
   })
 
+  await page.goto('/?signed-out=1')
+  await expect(page.getByRole('heading', { name: 'Draw a board. Keep it.' })).toBeVisible()
+  await expect(page.getByRole('img', { name: 'Preview of a board with three connected shapes' })).toBeVisible()
+  await page.screenshot({ path: shot('signed_out.png'), fullPage: true })
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.screenshot({ path: shot('signed_out_mobile.png'), fullPage: true })
+  await page.setViewportSize({ width: 1280, height: 800 })
+
   await page.goto('/')
   await expect(page.getByRole('heading', { name: 'Boards' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Sample: personal whiteboard' })).toBeVisible()
+  await page.screenshot({ path: shot('library_cards.png') })
   await page.getByRole('button', { name: 'Delete sample data' }).click()
   await expect(page.getByRole('heading', { name: 'No boards' })).toBeVisible()
   await expect(page.getByRole('status')).toHaveText('Sample deleted.')
@@ -103,5 +112,7 @@ test('core loop: boards, connect, autosave, export, and import', async ({ page }
   await page.getByLabel('Board file').setInputFiles(downloadPath!)
   await expect(page.getByRole('status').filter({ hasText: 'Imported "Flow".' })).toBeVisible()
   await expect(page.locator('[data-shape-kind="rectangle"]')).toBeVisible()
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.screenshot({ path: shot('editor_mobile.png') })
   expect(clerkHits).toEqual([])
 })

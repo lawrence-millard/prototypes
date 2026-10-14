@@ -19,8 +19,12 @@ function snapshot(): Theme {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
+export function useTheme(): Theme {
+  return useSyncExternalStore(subscribe, snapshot, () => 'light')
+}
+
 export function ThemeToggle() {
-  const theme = useSyncExternalStore(subscribe, snapshot, () => 'light')
+  const theme = useTheme()
 
   function toggle() {
     const next: Theme = theme === 'dark' ? 'light' : 'dark'
