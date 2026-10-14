@@ -1,34 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-test("home renders the poll form", async ({ page }) => {
+test("home is a landing", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "poll" })).toBeVisible();
-  await expect(page.getByRole("textbox", { name: "Question" })).toBeVisible();
-  await expect(page.getByRole("textbox", { name: "Option 1" })).toBeVisible();
-  await expect(page.getByRole("textbox", { name: "Option 2" })).toBeVisible();
-});
-
-test("add option reveals a third field", async ({ page }) => {
-  await page.goto("/");
-  await page.getByRole("button", { name: "Add option" }).click();
-  await expect(page.getByRole("textbox", { name: "Option 3" })).toBeVisible();
-});
-
-test("two options are required", async ({ page }) => {
-  await page.goto("/");
-  await page.getByRole("textbox", { name: "Question" }).fill("Lunch?");
-  await page.getByRole("textbox", { name: "Option 1" }).fill("Soup");
-  await page.getByRole("button", { name: "Create" }).click();
-  await expect(page.locator("p.error")).toHaveText("Add two options.");
-});
-
-test("creating a valid poll asks for sign-in", async ({ page }) => {
-  await page.goto("/");
-  await page.getByRole("textbox", { name: "Question" }).fill("Lunch?");
-  await page.getByRole("textbox", { name: "Option 1" }).fill("Soup");
-  await page.getByRole("textbox", { name: "Option 2" }).fill("Salad");
-  await page.getByRole("button", { name: "Create" }).click();
-  await expect(page.locator("p.error")).toHaveText("Sign in required.");
+  await expect(page.getByText("A question, then a shared link.")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Sign in" }).last()).toBeVisible();
 });
 
 test("unknown poll is not found", async ({ page }) => {

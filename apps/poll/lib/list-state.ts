@@ -1,4 +1,4 @@
-export type PollItem = { id: string; question: string; closed: boolean; votes: number };
+export type PollItem = { id: string; question: string; closed: boolean; votes: number; createdAt?: string };
 
 export type PollAction =
   | { type: "add"; item: PollItem }

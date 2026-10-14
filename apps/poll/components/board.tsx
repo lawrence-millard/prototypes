@@ -1,8 +1,11 @@
 "use client";
 
-import { useOptimistic, useRef, useState, useTransition } from "react";
-import { createPoll, removePoll, saveQuestion, toggleClosed } from "@/lib/actions";
+import { ListChecks, Pencil, Trash2 } from "lucide-react";
+import { useCallback, useOptimistic, useRef, useState, useTransition } from "react";
 import { CopyLink } from "@/components/copy-link";
+import { useKey } from "@/components/keys";
+import { Ago } from "@/components/time";
+import { createPoll, removePoll, saveQuestion, toggleClosed } from "@/lib/actions";
 import { reducePolls, type PollItem } from "@/lib/list-state";
 import { cleanOptions, questionSchema } from "@/lib/schemas";
 
@@ -13,12 +16,15 @@ export function Board({ items, signedIn }: { items: PollItem[] | null; signedIn:
   const [pending, startTransition] = useTransition();
   const [count, setCount] = useState(2);
   const formRef = useRef<HTMLFormElement>(null);
+  const questionRef = useRef<HTMLInputElement>(null);
+  const focusQuestion = useCallback(() => questionRef.current?.focus(), []);
+  useKey("c", focusQuestion);
 
   return (
     <>
       <form
         ref={formRef}
-        className="stack"
+        className="composer"
         onSubmit={(event) => {
           event.preventDefault();
           const form = new FormData(event.currentTarget);
@@ -34,7 +40,7 @@ export function Board({ items, signedIn }: { items: PollItem[] | null; signedIn:
           }
           setError(null);
           startTransition(async () => {
-            if (signedIn) apply({ type: "add", item: { id: crypto.randomUUID(), question: question.data, closed: false, votes: 0 } });
+            if (signedIn) apply({ type: "add", item: { id: crypto.randomUUID(), question: question.data, closed: false, votes: 0, createdAt: new Date().toISOString() } });
             const result = await createPoll({}, form);
             if (result.error) setError(result.error);
             else {
@@ -44,17 +50,31 @@ export function Board({ items, signedIn }: { items: PollItem[] | null; signedIn:
           });
         }}
       >
-        <label>
-          <span className="kicker">Question</span>
-          <input name="question" type="text" required maxLength={140} />
+        <div className="composer-head">
+          <span>New poll</span>
+          <kbd>C</kbd>
+        </div>
+        <label className="field">
+          <span>Question</span>
+          <input ref={questionRef} name="question" type="text" placeholder="Ask something" required maxLength={140} />
         </label>
         {Array.from({ length: count }, (_, index) => (
-          <label key={index}>
-            <span className="kicker">Option {index + 1}</span>
-            <input name="option" type="text" maxLength={80} />
-          </label>
+          <div className="option" key={index}>
+            <span className="idx" aria-hidden="true">
+              {index + 1}
+            </span>
+            <label className="field">
+              <span className="sr-only">Option {index + 1}</span>
+              <input name="option" type="text" placeholder="Add a choice" maxLength={80} />
+            </label>
+          </div>
         ))}
-        <div className="row">
+        {error ? (
+          <p className="error" role="alert">
+            {error}
+          </p>
+        ) : null}
+        <div className="composer-line">
           {count < 6 ? (
             <button className="ghost" type="button" onClick={() => setCount((value) => Math.min(6, value + 1))}>
               Add option
@@ -64,25 +84,28 @@ export function Board({ items, signedIn }: { items: PollItem[] | null; signedIn:
             {pending ? "Saving" : "Create"}
           </button>
         </div>
-        {error ? (
-          <p className="error" role="alert">
-            {error}
-          </p>
-        ) : null}
       </form>
-      <section className="section">
-        {signedIn && items && optimistic.length === 0 ? <p className="dim">No polls.</p> : null}
+      <section className="list">
+        {signedIn && items && optimistic.length === 0 ? (
+          <div className="empty">
+            <ListChecks size={18} strokeWidth={1.5} aria-hidden="true" />
+            <strong>No polls</strong>
+          </div>
+        ) : null}
         {optimistic.map((poll) => (
-          <article key={poll.id} className="item">
-            <h2>
-              <a href={`/p/${poll.id}`}>{poll.question}</a>
-            </h2>
-            <p className="mono dim">
-              {poll.votes} {poll.closed ? "· closed" : ""}
-            </p>
-            <p className="mono dim">/p/{poll.id}</p>
-            <div className="actions">
-              <CopyLink path={`/p/${poll.id}`} />
+          <article key={poll.id} className="row-item">
+            <ListChecks className="ico" size={16} strokeWidth={1.5} aria-hidden="true" />
+            <div className="row-main">
+              <div className="row-top">
+                <h2>
+                  <a href={`/p/${poll.id}`}>{poll.question}</a>
+                </h2>
+                <Ago at={poll.createdAt} />
+              </div>
+              <p className="mono dim">
+                {poll.votes} {poll.votes === 1 ? "vote" : "votes"}
+                {poll.closed ? " · closed" : ""}
+              </p>
               <PollActions poll={poll} onApply={apply} />
             </div>
           </article>
@@ -94,9 +117,15 @@ export function Board({ items, signedIn }: { items: PollItem[] | null; signedIn:
 
 function PollActions({ poll, onApply }: { poll: PollItem; onApply: (action: Parameters<typeof reducePolls>[1]) => void }) {
   const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
   const [pending, startTransition] = useTransition();
   return (
     <>
+      <div className="row-actions">
+      <CopyLink path={`/p/${poll.id}`} />
+      <button className="icon-btn" type="button" aria-label="Edit" onClick={() => setEditing((open) => !open)}>
+        <Pencil size={15} strokeWidth={1.5} />
+      </button>
       <form
         action={(form) => {
           setError(null);
@@ -108,8 +137,8 @@ function PollActions({ poll, onApply }: { poll: PollItem; onApply: (action: Para
         }}
       >
         <input type="hidden" name="id" value={poll.id} />
-        <button className="textish" type="submit" disabled={pending}>
-          Delete
+        <button className="icon-btn" type="submit" aria-label="Delete" disabled={pending}>
+          <Trash2 size={15} strokeWidth={1.5} />
         </button>
       </form>
       <form
@@ -129,10 +158,10 @@ function PollActions({ poll, onApply }: { poll: PollItem; onApply: (action: Para
           {poll.closed ? "Open" : "Close"}
         </button>
       </form>
-      <details>
-        <summary>Edit</summary>
+      </div>
+      {editing ? (
         <form
-          className="stack edit"
+          className="edit"
           action={(form) => {
             const question = questionSchema.safeParse(form.get("question"));
             if (!question.success) {
@@ -144,12 +173,13 @@ function PollActions({ poll, onApply }: { poll: PollItem; onApply: (action: Para
               onApply({ type: "edit", id: poll.id, question: question.data });
               const result = await saveQuestion({}, form);
               if (result.error) setError(result.error);
+              else setEditing(false);
             });
           }}
         >
           <input type="hidden" name="id" value={poll.id} />
-          <label>
-            <span className="kicker">Question</span>
+          <label className="field">
+            <span>Question</span>
             <input name="question" type="text" required maxLength={140} defaultValue={poll.question} />
           </label>
           <div>
@@ -158,7 +188,7 @@ function PollActions({ poll, onApply }: { poll: PollItem; onApply: (action: Para
             </button>
           </div>
         </form>
-      </details>
+      ) : null}
       {error ? (
         <p className="error" role="alert">
           {error}

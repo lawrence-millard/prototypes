@@ -1,12 +1,15 @@
 import "server-only";
 
 import { cache } from "react";
+import { PREVIEW_USER_ID, previewOn } from "@/lib/auth";
 import { db } from "@/lib/db";
 import type { Bookmark } from "@/lib/list-state";
+import { previewBookmarks } from "@/lib/preview";
 
 type Listed = { bookmarks: Bookmark[]; tags: string[] };
 
 export const listBookmarks = cache(async (userId: string, tag: string | null): Promise<Listed> => {
+  if (previewOn() && userId === PREVIEW_USER_ID) return previewBookmarks(tag);
   const sql = await db();
   const rows = await sql`
     WITH visible AS (
@@ -32,7 +35,7 @@ export const listBookmarks = cache(async (userId: string, tag: string | null): P
       LIMIT 200
     )
     SELECT
-      coalesce((SELECT json_agg(json_build_object('id', id, 'url', url, 'title', title, 'tags', tags) ORDER BY created_at DESC) FROM visible), '[]'::json) AS bookmarks,
+      coalesce((SELECT json_agg(json_build_object('id', id, 'url', url, 'title', title, 'tags', tags, 'createdAt', created_at) ORDER BY created_at DESC) FROM visible), '[]'::json) AS bookmarks,
       coalesce((SELECT json_agg(name ORDER BY name) FROM marks_tags WHERE user_id = ${userId}), '[]'::json) AS tags
   `;
   const row = rows[0];
@@ -42,6 +45,7 @@ export const listBookmarks = cache(async (userId: string, tag: string | null): P
       url: String(bookmark.url),
       title: String(bookmark.title),
       tags: Array.isArray(bookmark.tags) ? bookmark.tags.map(String) : [],
+      createdAt: bookmark.createdAt ? new Date(String(bookmark.createdAt)).toISOString() : undefined,
     })),
     tags: asArray<string>(row?.tags).map(String),
   };

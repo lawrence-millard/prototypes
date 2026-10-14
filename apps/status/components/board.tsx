@@ -1,6 +1,9 @@
 "use client";
 
-import { useOptimistic, useRef, useState, useTransition } from "react";
+import { Activity, Pencil, RefreshCw, Trash2 } from "lucide-react";
+import { useCallback, useOptimistic, useRef, useState, useTransition } from "react";
+import { useKey } from "@/components/keys";
+import { Ago } from "@/components/time";
 import { createMonitor, refreshMonitors, removeMonitor, saveLabel } from "@/lib/actions";
 import { reduceMonitors, statusLine, type Monitor } from "@/lib/list-state";
 
@@ -11,12 +14,25 @@ export function Board({ items, signedIn }: { items: Monitor[] | null; signedIn: 
   const [pending, startTransition] = useTransition();
   const [checking, setChecking] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  const linkRef = useRef<HTMLInputElement>(null);
+  const focusLink = useCallback(() => linkRef.current?.focus(), []);
+  const refresh = useCallback(() => {
+    setError(null);
+    setChecking(true);
+    startTransition(async () => {
+      const result = await refreshMonitors();
+      setChecking(false);
+      if (result.error) setError(result.error);
+    });
+  }, [startTransition]);
+  useKey("c", focusLink);
+  useKey("r", refresh);
 
   return (
     <>
       <form
         ref={formRef}
-        className="stack"
+        className="composer"
         onSubmit={(event) => {
           event.preventDefault();
           const form = new FormData(event.currentTarget);
@@ -38,7 +54,7 @@ export function Board({ items, signedIn }: { items: Monitor[] | null; signedIn: 
             if (signedIn) {
               apply({
                 type: "add",
-                item: { id: crypto.randomUUID(), url: url.href, label, ok: null, statusCode: null, latencyMs: null, error: null },
+                item: { id: crypto.randomUUID(), url: url.href, label, ok: null, statusCode: null, latencyMs: null, error: null, at: new Date().toISOString() },
               });
             }
             const result = await createMonitor({}, form);
@@ -47,51 +63,62 @@ export function Board({ items, signedIn }: { items: Monitor[] | null; signedIn: 
           });
         }}
       >
-        <label>
-          <span className="kicker">URL</span>
-          <input name="url" type="text" inputMode="url" autoComplete="off" autoCapitalize="off" autoCorrect="off" required maxLength={2000} spellCheck={false} />
-        </label>
-        <label>
-          <span className="kicker">Label</span>
-          <input name="label" type="text" maxLength={120} />
-        </label>
+        <div className="composer-head">
+          <span>New check</span>
+          <span className="row-actions">
+            <kbd>C</kbd>
+            <kbd>R</kbd>
+          </span>
+        </div>
+        <div className="composer-line">
+          <label className="field">
+            <span>URL</span>
+            <input ref={linkRef} name="url" type="text" inputMode="url" placeholder="https://" autoComplete="off" autoCapitalize="off" autoCorrect="off" required maxLength={2000} spellCheck={false} />
+          </label>
+          <label className="field">
+            <span>Label</span>
+            <input name="label" type="text" placeholder="Optional" maxLength={120} />
+          </label>
+        </div>
         {error ? (
           <p className="error" role="alert">
             {error}
           </p>
         ) : null}
-        <div className="row">
+        <div className="composer-line">
           <button className="primary" type="submit" disabled={pending} aria-busy={pending}>
             {pending && !checking ? "Saving" : "Save"}
           </button>
-          <button
-            className="ghost"
-            type="button"
-            disabled={pending}
-            onClick={() => {
-              setError(null);
-              setChecking(true);
-              startTransition(async () => {
-                const result = await refreshMonitors();
-                setChecking(false);
-                if (result.error) setError(result.error);
-              });
-            }}
-          >
+          <button className="ghost" type="button" disabled={pending} onClick={refresh}>
+            <RefreshCw size={15} strokeWidth={1.5} aria-hidden="true" />
             {checking ? "Checking" : "Refresh"}
           </button>
         </div>
       </form>
-      <section className="section">
-        {signedIn && items && optimistic.length === 0 ? <p className="dim">No URLs.</p> : null}
-        {optimistic.map((item) => (
-          <article key={item.id} className="item">
-            <h2>{item.label}</h2>
-            <p className="mono dim">{item.url}</p>
-            {statusLine(item, checking) ? <p className="mono">{statusLine(item, checking)}</p> : null}
-            <MonitorActions item={item} onDelete={(id) => apply({ type: "delete", id })} onEdit={(id, label) => apply({ type: "edit", id, label })} />
-          </article>
-        ))}
+      <section className="list">
+        {signedIn && items && optimistic.length === 0 ? (
+          <div className="empty">
+            <Activity size={18} strokeWidth={1.5} aria-hidden="true" />
+            <strong>No URLs</strong>
+          </div>
+        ) : null}
+        {optimistic.map((item) => {
+          const state = item.ok === true ? "up" : item.ok === false || item.error ? "down" : "";
+          return (
+            <article key={item.id} className="row-item">
+              <span className={state ? `dot ${state}` : "dot"} aria-hidden="true" />
+              <div className="row-main">
+                <div className="row-top">
+                  <h2>{item.label}</h2>
+                  <Ago at={item.at} />
+                </div>
+                <p className="mono dim">{item.url.replace(/^https?:\/\//, "")}</p>
+                {statusLine(item, checking) ? <p className="mono">{statusLine(item, checking)}</p> : null}
+                <MonitorActions item={item} onDelete={(id) => apply({ type: "delete", id })} onEdit={(id, label) => apply({ type: "edit", id, label })} />
+              </div>
+            </article>
+          );
+        })}
       </section>
     </>
   );
@@ -107,10 +134,14 @@ function MonitorActions({
   onEdit: (id: string, label: string) => void;
 }) {
   const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
   const [pending, startTransition] = useTransition();
   return (
     <>
-      <div className="actions">
+      <div className="row-actions">
+        <button className="icon-btn" type="button" aria-label="Edit" onClick={() => setEditing((open) => !open)}>
+          <Pencil size={15} strokeWidth={1.5} />
+        </button>
         <form
           action={(form) => {
             setError(null);
@@ -122,15 +153,14 @@ function MonitorActions({
           }}
         >
           <input type="hidden" name="id" value={item.id} />
-          <button className="textish" type="submit" disabled={pending}>
-            Delete
+          <button className="icon-btn" type="submit" aria-label="Delete" disabled={pending}>
+            <Trash2 size={15} strokeWidth={1.5} />
           </button>
         </form>
       </div>
-      <details>
-        <summary>Edit</summary>
+      {editing ? (
         <form
-          className="stack edit"
+          className="edit"
           action={(form) => {
             const label = String(form.get("label") ?? "").trim();
             if (!label) {
@@ -142,12 +172,13 @@ function MonitorActions({
               onEdit(item.id, label);
               const result = await saveLabel({}, form);
               if (result.error) setError(result.error);
+              else setEditing(false);
             });
           }}
         >
           <input type="hidden" name="id" value={item.id} />
-          <label>
-            <span className="kicker">Label</span>
+          <label className="field">
+            <span>Label</span>
             <input name="label" type="text" required maxLength={120} defaultValue={item.label} />
           </label>
           <div>
@@ -156,7 +187,7 @@ function MonitorActions({
             </button>
           </div>
         </form>
-      </details>
+      ) : null}
       {error ? (
         <p className="error" role="alert">
           {error}

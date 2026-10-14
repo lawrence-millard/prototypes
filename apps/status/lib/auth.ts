@@ -8,7 +8,14 @@ export function hasClerk(): boolean {
   return Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY);
 }
 
+export const PREVIEW_USER_ID = "user_preview";
+
+export function previewOn(): boolean {
+  return process.env.NODE_ENV !== "production" && process.env.PREVIEW === "1";
+}
+
 export async function currentUserId(): Promise<string | null> {
+  if (previewOn()) return PREVIEW_USER_ID;
   if (!hasClerk()) return null;
   const { auth } = await import("@clerk/nextjs/server");
   const { userId } = await auth();

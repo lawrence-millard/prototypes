@@ -1,17 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-test("home renders the group form", async ({ page }) => {
+test("home is a landing", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "split" })).toBeVisible();
-  await expect(page.getByRole("textbox", { name: "Group" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Create" })).toBeVisible();
-});
-
-test("creating a group asks for sign-in", async ({ page }) => {
-  await page.goto("/");
-  await page.getByRole("textbox", { name: "Group" }).fill("Trip");
-  await page.getByRole("button", { name: "Create" }).click();
-  await expect(page.locator("p.error")).toHaveText("Sign in required.");
+  await expect(page.getByText("Who paid, and who settles.")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Sign in" }).last()).toBeVisible();
 });
 
 test("a group link asks for sign-in", async ({ page }) => {

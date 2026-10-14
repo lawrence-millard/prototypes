@@ -25,11 +25,13 @@ export function VoteForm({
   const total = optimistic.reduce((sum, option) => sum + option.votes, 0);
 
   return (
-    <>
+    <div className="block">
       <h2>{question}</h2>
-      <p className="mono dim">{total}</p>
+      <p className="mono dim">
+        {total} {total === 1 ? "vote" : "votes"}
+      </p>
       <form
-        className="section"
+        className="list"
         onSubmit={(event) => {
           event.preventDefault();
           const form = new FormData(event.currentTarget);
@@ -47,31 +49,36 @@ export function VoteForm({
         }}
       >
         <input type="hidden" name="pollId" value={pollId} />
-        {optimistic.map((option) => (
-          <label key={option.id} className="choice">
-            <input type="radio" name="optionId" value={option.id} defaultChecked={option.mine} disabled={closed || voted || pending} />
-            <span>{option.label}</span>
-            <span className="mono">{option.votes}</span>
-          </label>
-        ))}
+        {optimistic.map((option) => {
+          const width = total > 0 ? Math.max(option.votes > 0 ? 8 : 0, Math.round((option.votes / total) * 100)) : 0;
+          return (
+            <label key={option.id} className="choice">
+              <span className="meter" style={{ width: `${width}%` }} />
+              <span className="split">
+                <input type="radio" name="optionId" value={option.id} defaultChecked={option.mine} disabled={closed || voted || pending} />
+                <span>{option.label}</span>
+              </span>
+              <span className="mono">{option.votes}</span>
+            </label>
+          );
+        })}
         {!closed && !voted ? (
-          <div className="section">
+          <div>
             <button className="primary" type="submit" disabled={pending} aria-busy={pending}>
               {pending ? "Saving" : "Vote"}
             </button>
           </div>
         ) : null}
-        {closed ? <p className="section dim">Closed.</p> : null}
+        {closed ? <p className="dim">Closed.</p> : null}
         {error ? (
-          <p className="error section" role="alert">
+          <p className="error" role="alert">
             {error}
           </p>
         ) : null}
       </form>
-      <div className="actions">
-        <p className="mono dim">/p/{pollId}</p>
+      <div className="row-actions">
         <CopyLink path={`/p/${pollId}`} />
       </div>
-    </>
+    </div>
   );
 }

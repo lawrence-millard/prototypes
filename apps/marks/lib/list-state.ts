@@ -1,4 +1,4 @@
-export type Bookmark = { id: string; url: string; title: string; tags: string[] };
+export type Bookmark = { id: string; url: string; title: string; tags: string[]; createdAt?: string };
 
 export type ListAction =
   | { type: "add"; item: Bookmark }

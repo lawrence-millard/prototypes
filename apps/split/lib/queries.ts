@@ -1,26 +1,34 @@
 import "server-only";
 
 import { cache } from "react";
+import { PREVIEW_USER_ID, previewOn } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { equalShares } from "@/lib/money";
+import { previewGroup, previewGroups } from "@/lib/preview";
 
 export type Member = { id: string; name: string };
-export type ExpenseRow = { id: string; memo: string; amount: number; payerId: string; shares: { memberId: string; amount: number }[] };
+export type ExpenseRow = { id: string; memo: string; amount: number; payerId: string; shares: { memberId: string; amount: number }[]; createdAt?: string };
 export type GroupView = { id: string; name: string; members: Member[]; expenses: ExpenseRow[] };
-export type GroupItem = { id: string; name: string };
+export type GroupItem = { id: string; name: string; createdAt?: string };
 
 export const listGroups = cache(async (userId: string): Promise<GroupItem[]> => {
+  if (previewOn() && userId === PREVIEW_USER_ID) return previewGroups();
   const sql = await db();
   const rows = await sql`
-    SELECT id, name FROM split_groups
+    SELECT id, name, created_at FROM split_groups
     WHERE user_id = ${userId}
     ORDER BY created_at DESC
     LIMIT 20
   `;
-  return rows.map((row) => ({ id: String(row.id), name: String(row.name) }));
+  return rows.map((row) => ({
+    id: String(row.id),
+    name: String(row.name),
+    createdAt: row.created_at ? new Date(String(row.created_at)).toISOString() : undefined,
+  }));
 });
 
 export const getGroup = cache(async (userId: string, groupId: string): Promise<GroupView | null> => {
+  if (previewOn() && userId === PREVIEW_USER_ID) return previewGroup(groupId);
   const sql = await db();
   const rows = await sql`
     SELECT g.name,
@@ -35,6 +43,7 @@ export const getGroup = cache(async (userId: string, groupId: string): Promise<G
           'memo', e.memo,
           'amount', e.amount_cents,
           'payerId', e.payer_id,
+          'createdAt', e.created_at,
           'shares', coalesce((
             SELECT json_agg(json_build_object('memberId', s.member_id, 'amount', s.amount_cents))
             FROM split_shares s
@@ -58,6 +67,7 @@ export const getGroup = cache(async (userId: string, groupId: string): Promise<G
       memo: String(expense.memo),
       amount: Number(expense.amount),
       payerId: String(expense.payerId),
+      createdAt: expense.createdAt ? new Date(String(expense.createdAt)).toISOString() : undefined,
       shares: asArray<{ memberId: string; amount: number }>(expense.shares).map((share) => ({
         memberId: String(share.memberId),
         amount: Number(share.amount),

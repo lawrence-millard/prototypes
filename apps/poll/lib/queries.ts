@@ -1,13 +1,16 @@
 import "server-only";
 
 import { cache } from "react";
+import { PREVIEW_USER_ID, previewOn } from "@/lib/auth";
 import { db } from "@/lib/db";
 import type { Choice, PollItem } from "@/lib/list-state";
+import { previewPoll, previewPolls } from "@/lib/preview";
 
 export const listPolls = cache(async (userId: string): Promise<PollItem[]> => {
+  if (previewOn() && userId === PREVIEW_USER_ID) return previewPolls;
   const sql = await db();
   const rows = await sql`
-    SELECT p.id, p.question, p.closed,
+    SELECT p.id, p.question, p.closed, p.created_at,
       (SELECT count(*)::int FROM poll_votes v WHERE v.poll_id = p.id) AS votes
     FROM poll_polls p
     WHERE p.user_id = ${userId}
@@ -19,6 +22,7 @@ export const listPolls = cache(async (userId: string): Promise<PollItem[]> => {
     question: String(row.question),
     closed: Boolean(row.closed),
     votes: Number(row.votes ?? 0),
+    createdAt: row.created_at ? new Date(String(row.created_at)).toISOString() : undefined,
   }));
 });
 
@@ -88,6 +92,7 @@ export type PublicPoll = {
 };
 
 export const getPoll = cache(async (pollId: string, userId: string): Promise<PublicPoll | null> => {
+  if (previewOn() && userId === PREVIEW_USER_ID) return previewPoll(pollId);
   const sql = await db();
   const rows = await sql`
     SELECT p.question, p.closed, (p.user_id = ${userId}) AS owner,

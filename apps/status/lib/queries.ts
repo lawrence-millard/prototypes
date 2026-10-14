@@ -1,14 +1,17 @@
 import "server-only";
 
 import { cache } from "react";
+import { PREVIEW_USER_ID, previewOn } from "@/lib/auth";
 import { db } from "@/lib/db";
 import type { Monitor } from "@/lib/list-state";
+import { previewMonitors } from "@/lib/preview";
 import { probe } from "@/lib/probe";
 import { allowBucket } from "@/lib/rate-limit";
 
 const STALE_MS = 20_000;
 
 export const loadMonitors = cache(async (userId: string, force = false): Promise<{ items: Monitor[]; limited: boolean }> => {
+  if (previewOn() && userId === PREVIEW_USER_ID) return previewMonitors();
   const sql = await db();
   const rows = await sql`
     SELECT m.id, m.url, m.label, c.ok, c.status_code, c.latency_ms, c.error, c.checked_at
@@ -121,6 +124,7 @@ function toMonitor(row: Record<string, unknown>): Monitor & { checkedAt: number 
     statusCode: row.status_code === null || row.status_code === undefined ? null : Number(row.status_code),
     latencyMs: row.latency_ms === null || row.latency_ms === undefined ? null : Number(row.latency_ms),
     error: row.error ? String(row.error) : null,
+    at: checked && !Number.isNaN(checked) ? new Date(checked).toISOString() : undefined,
     checkedAt: Number.isNaN(checked) ? null : checked,
   };
 }

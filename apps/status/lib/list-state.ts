@@ -6,6 +6,7 @@ export type Monitor = {
   statusCode: number | null;
   latencyMs: number | null;
   error: string | null;
+  at?: string;
 };
 
 export type MonitorAction =
