@@ -44,7 +44,6 @@ export function redoHistory<T>(history: History<T>): History<T> {
   }
 }
 
-/** Finish a drag or text edit that previewed on top of `origin`. */
 export function commitFromOrigin<T>(history: History<T>, origin: T): History<T> {
   if (Object.is(history.present, origin)) return history
   return {

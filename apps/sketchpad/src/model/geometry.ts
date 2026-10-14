@@ -38,7 +38,6 @@ export function pointInShape(shape: Shape, point: Point): boolean {
   )
 }
 
-/** Point where a ray from the shape center toward `toward` crosses the outline. */
 export function edgePoint(shape: Shape, toward: Point): Point {
   const c = centerOf(shape)
   const dx = toward.x - c.x

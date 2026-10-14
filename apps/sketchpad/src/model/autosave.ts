@@ -12,7 +12,7 @@ export function saveStatusLabel(status: SaveStatus): string {
       return 'Save failed'
     case 'saved':
     case 'idle':
-      return 'Saved on this browser'
+      return 'Saved'
   }
 }
 

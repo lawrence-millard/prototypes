@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { deleteBoard, deleteSampleBoards, loadLibrary, putBoard } from '../db/database'
+import { syncOnLoad } from '../sync/client'
 import { createBoard, renameBoard } from '../model/board'
 import { createSampleBoard } from '../model/sample'
 import type { Board } from '../model/types'
@@ -34,9 +35,11 @@ export function Library({
     let cancelled = false
     setBoards(null)
     setLoadError(null)
-    loadLibrary(ownerId)
+    syncOnLoad(ownerId)
+      .catch(() => undefined)
+      .then(() => (cancelled ? null : loadLibrary(ownerId)))
       .then((next) => {
-        if (!cancelled) setBoards(next)
+        if (!cancelled && next) setBoards(next)
       })
       .catch((err: unknown) => {
         if (!cancelled) setLoadError(storageMessage(err, 'Could not load boards from this browser.'))
@@ -72,7 +75,7 @@ export function Library({
     try {
       await deleteSampleBoards(ownerId)
       await refresh()
-      setNotice('Sample data deleted from this browser.')
+      setNotice('Sample deleted.')
     } catch (err) {
       setActionError(storageMessage(err, 'Could not delete the sample data.'))
     } finally {
@@ -87,7 +90,7 @@ export function Library({
     try {
       await putBoard(ownerId, createSampleBoard(), 'restore')
       await refresh()
-      setNotice('Sample board added. It is labelled Sample.')
+      setNotice('Sample added.')
     } catch (err) {
       setActionError(storageMessage(err, 'Could not add the sample board.'))
     } finally {
@@ -141,7 +144,6 @@ export function Library({
       <div className="page-head">
         <div>
           <h1>Boards</h1>
-          <p>Stored in IndexedDB on this browser. Nothing is uploaded.</p>
         </div>
         <div className="page-actions">
           <button type="button" className="primary" onClick={() => void create()} disabled={!ready || pending}>
@@ -185,8 +187,7 @@ export function Library({
             <span className="art-line" />
             <span className="art-ellipse" />
           </div>
-          <h2>No boards on this browser</h2>
-          <p>Create a board, import a JSON backup, or add the labelled sample. Boards stay on this device.</p>
+          <h2>No boards</h2>
         </div>
       ) : null}
 
@@ -274,7 +275,7 @@ export function Library({
 
       {confirmDelete ? (
         <Dialog title="Delete board" onClose={() => setConfirmDelete(null)}>
-          <p>Delete "{confirmDelete.name}"? This removes it from this browser.</p>
+          <p>Delete "{confirmDelete.name}"?</p>
           <div className="dialog-actions">
             <button type="button" className="danger" onClick={() => void confirmRemove()} disabled={pending}>
               Delete board

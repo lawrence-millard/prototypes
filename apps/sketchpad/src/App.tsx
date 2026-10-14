@@ -4,6 +4,7 @@ import { useSession } from './auth/session'
 import { Editor } from './ui/Editor'
 import { Library } from './ui/Library'
 import { FullScreenMessage } from './ui/messages'
+import { ThemeToggle } from './ui/ThemeToggle'
 
 const UserButton = lazy(async () => {
   const module = await import('@clerk/clerk-react')
@@ -23,8 +24,8 @@ class AppErrorBoundary extends Component<{ children: ReactNode }, { failed: bool
     if (this.state.failed) {
       return (
         <FullScreenMessage
-          title="Sketchpad hit a problem"
-          body="Reload the page to try again. Your last successful save is still in this browser."
+          title="Something went wrong"
+          body="Reload to try again."
           action={
             <button type="button" onClick={() => window.location.reload()}>
               Reload
@@ -49,9 +50,6 @@ function Shell({ editor, children }: { editor: boolean; children: ReactNode }) {
           <span className="mark" aria-hidden="true" />
           <span className="brand-name">Sketchpad</span>
         </div>
-        <p className="privacy" data-testid="privacy-mode">
-          {session.mode === 'local' ? 'Private on this browser' : 'Signed in. Boards stay on this browser.'}
-        </p>
         <div className="top-actions">
           {session.mode === 'clerk' ? (
             <Suspense fallback={<span className="user-fallback">Account</span>}>
@@ -91,6 +89,7 @@ function Sketchpad() {
 export function App() {
   return (
     <AppErrorBoundary>
+      <ThemeToggle />
       <AuthGate>
         <Sketchpad />
       </AuthGate>

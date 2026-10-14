@@ -14,27 +14,27 @@ export const HISTORY_LIMIT = 100
 export const PNG_MAX_EDGE = 2_048
 export const AUTOSAVE_MS = 400
 
-export const INK = '#1a1814'
-export const CANVAS = '#fffdf8'
-export const HALO = '#fffdf8'
-export const TEXT_STROKE = '#8d8478'
+export const INK = '#0b0b0b'
+export const CANVAS = '#f6f6f6'
+export const HALO = '#f6f6f6'
+export const TEXT_STROKE = '#5a5a5a'
 
 export const FILLS = [
-  { id: 'sand', label: 'Sand', value: '#f3e6c8' },
-  { id: 'mint', label: 'Mint', value: '#d7ebe3' },
-  { id: 'clay', label: 'Clay', value: '#f6d6d0' },
-  { id: 'mist', label: 'Mist', value: '#d9e2f2' },
-  { id: 'lilac', label: 'Lilac', value: '#ece7f6' },
-  { id: 'paper', label: 'Paper', value: '#fffdf8' },
+  { id: 'paper', label: 'Paper', value: '#f6f6f6' },
+  { id: 'mist', label: 'Mist', value: '#e6e6e6' },
+  { id: 'ash', label: 'Ash', value: '#cfcfcf' },
+  { id: 'slate', label: 'Slate', value: '#8a8a8a' },
+  { id: 'ink', label: 'Ink', value: '#1a1a1a' },
+  { id: 'black', label: 'Black', value: '#0b0b0b' },
 ] as const
 
 export const SHAPE_DEFAULTS: Record<
   ShapeKind,
   { width: number; height: number; fill: string; stroke: string }
 > = {
-  rectangle: { width: 168, height: 96, fill: '#f3e6c8', stroke: INK },
-  ellipse: { width: 168, height: 104, fill: '#d7ebe3', stroke: INK },
-  diamond: { width: 160, height: 120, fill: '#f6d6d0', stroke: INK },
+  rectangle: { width: 168, height: 96, fill: '#e6e6e6', stroke: INK },
+  ellipse: { width: 168, height: 104, fill: '#f6f6f6', stroke: INK },
+  diamond: { width: 160, height: 120, fill: '#cfcfcf', stroke: INK },
   text: { width: 220, height: 64, fill: CANVAS, stroke: TEXT_STROKE },
 }
 

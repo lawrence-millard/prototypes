@@ -18,7 +18,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
     return (
       <FullScreenMessage
         title="Sign-in is misconfigured"
-        body="VITE_CLERK_PUBLISHABLE_KEY is set, but it does not look like a Clerk publishable key. Remove it to use Sketchpad privately on this browser, or paste the publishable key from your existing Clerk application."
+        body="The publishable key is invalid."
       />
     )
   }
@@ -26,8 +26,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
     <Suspense
       fallback={
         <FullScreenMessage
-          title="Loading sign-in…"
-          body="Checking the optional Clerk sign-in. Board contents are not sent."
+          title="Sign in"
+          body="Loading."
         />
       }
     >

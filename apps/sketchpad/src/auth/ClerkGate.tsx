@@ -1,5 +1,6 @@
 import { ClerkFailed, ClerkLoaded, ClerkLoading, ClerkProvider, SignIn, useAuth } from '@clerk/clerk-react'
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
+import { bindSync } from '../sync/client'
 import { FullScreenMessage } from '../ui/messages'
 import { OwnerProvider } from './session'
 
@@ -13,15 +14,12 @@ export default function ClerkGate({
   return (
     <ClerkProvider publishableKey={publishableKey}>
       <ClerkLoading>
-        <FullScreenMessage
-          title="Checking sign-in…"
-          body="A Clerk publishable key is set. Board contents stay in this browser and are not uploaded."
-        />
+        <FullScreenMessage title="Sign in" body="Loading." />
       </ClerkLoading>
       <ClerkFailed>
         <FullScreenMessage
-          title="Sign-in could not be loaded"
-          body="Clerk did not load. Check the publishable key from your shared Clerk application, or clear VITE_CLERK_PUBLISHABLE_KEY to use Sketchpad without an account."
+          title="Sign-in failed"
+          body="Check the publishable key."
         />
       </ClerkFailed>
       <ClerkLoaded>
@@ -32,7 +30,15 @@ export default function ClerkGate({
 }
 
 function ClerkSession({ children }: { children: ReactNode }) {
-  const { isSignedIn, userId } = useAuth()
+  const { isSignedIn, userId, getToken } = useAuth()
+  useEffect(() => {
+    if (!isSignedIn || !userId) {
+      bindSync(null)
+      return
+    }
+    bindSync(() => getToken())
+    return () => bindSync(null)
+  }, [getToken, isSignedIn, userId])
   if (!isSignedIn || !userId) return <SignInScreen />
   return (
     <OwnerProvider ownerId={userId} mode="clerk">
@@ -51,13 +57,14 @@ function SignInScreen() {
         forceRedirectUrl="/"
         appearance={{
           variables: {
-            colorPrimary: '#145c3e',
-            colorBackground: '#fbf8f3',
-            colorText: '#1a1814',
-            colorInputBackground: '#fffdf8',
-            colorInputText: '#1a1814',
+            colorPrimary: '#0b0b0b',
+            colorBackground: '#f6f6f6',
+            colorText: '#0b0b0b',
+            colorInputBackground: '#f6f6f6',
+            colorInputText: '#0b0b0b',
+            colorNeutral: '#5a5a5a',
             borderRadius: '8px',
-            fontFamily: 'Segoe UI, Helvetica Neue, sans-serif',
+            fontFamily: '"Open Runde", "SF Pro", ui-sans-serif, system-ui, sans-serif',
           },
         }}
       />

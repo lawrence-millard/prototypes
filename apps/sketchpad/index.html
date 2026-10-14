@@ -4,19 +4,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="referrer" content="no-referrer" />
-    <meta name="color-scheme" content="light" />
-    <meta
-      name="description"
-      content="Sketchpad is a private browser whiteboard. Boards stay in IndexedDB on this device."
-    />
     <title>Sketchpad</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <script>
+      try {
+        var theme = localStorage.getItem("theme")
+        var root = document.documentElement
+        if (theme === "dark" || theme === "light") root.dataset.theme = theme
+        else if (matchMedia("(prefers-color-scheme: dark)").matches) root.dataset.theme = "dark"
+      } catch (e) {}
+    </script>
   </head>
   <body>
-    <div id="root">
-      <p style="font-family: system-ui, sans-serif; padding: 24px">Loading Sketchpad…</p>
-    </div>
-    <noscript>Sketchpad needs JavaScript. Boards are still stored only in this browser.</noscript>
+    <div id="root"></div>
+    <noscript>Sketchpad needs JavaScript.</noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

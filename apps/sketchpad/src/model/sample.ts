@@ -2,7 +2,6 @@ import type { Board } from './types'
 
 export const SAMPLE_BOARD_ID = 'sample-personal-whiteboard'
 
-/** Labelled sample diagram. Safe to delete; it is not required for the app to run. */
 export function createSampleBoard(now = Date.now()): Board {
   return {
     id: SAMPLE_BOARD_ID,
@@ -19,8 +18,8 @@ export function createSampleBoard(now = Date.now()): Board {
         width: 180,
         height: 96,
         text: 'Idea',
-        fill: '#f3e6c8',
-        stroke: '#1a1814',
+        fill: '#e6e6e6',
+        stroke: '#0b0b0b',
       },
       {
         id: 'sample-sketch',
@@ -30,8 +29,8 @@ export function createSampleBoard(now = Date.now()): Board {
         width: 180,
         height: 120,
         text: 'Sketch',
-        fill: '#d7ebe3',
-        stroke: '#1a1814',
+        fill: '#f6f6f6',
+        stroke: '#0b0b0b',
       },
       {
         id: 'sample-decide',
@@ -41,8 +40,8 @@ export function createSampleBoard(now = Date.now()): Board {
         width: 180,
         height: 130,
         text: 'Decide',
-        fill: '#f6d6d0',
-        stroke: '#1a1814',
+        fill: '#cfcfcf',
+        stroke: '#0b0b0b',
       },
       {
         id: 'sample-note',
@@ -52,8 +51,8 @@ export function createSampleBoard(now = Date.now()): Board {
         width: 520,
         height: 56,
         text: 'Sample data. You can delete it in one click.',
-        fill: '#fffdf8',
-        stroke: '#8d8478',
+        fill: '#f6f6f6',
+        stroke: '#5a5a5a',
       },
     ],
     connectors: [

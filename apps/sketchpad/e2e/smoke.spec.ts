@@ -16,11 +16,11 @@ test('core loop: boards, connect, autosave, export, and import', async ({ page }
   })
 
   await page.goto('/')
-  await expect(page.getByTestId('privacy-mode')).toHaveText('Private on this browser')
+  await expect(page.getByRole('heading', { name: 'Boards' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Sample: personal whiteboard' })).toBeVisible()
   await page.getByRole('button', { name: 'Delete sample data' }).click()
-  await expect(page.getByRole('heading', { name: 'No boards on this browser' })).toBeVisible()
-  await expect(page.getByRole('status')).toHaveText('Sample data deleted from this browser.')
+  await expect(page.getByRole('heading', { name: 'No boards' })).toBeVisible()
+  await expect(page.getByRole('status')).toHaveText('Sample deleted.')
   await page.screenshot({ path: shot('empty_state_v2.png') })
 
   await page.getByRole('button', { name: 'New board' }).click()
@@ -82,7 +82,7 @@ test('core loop: boards, connect, autosave, export, and import', async ({ page }
   await page.keyboard.press('Control+Z')
   await expect(rect).toHaveAttribute('x', xBefore)
   await page.keyboard.press('Control+s')
-  await expect(page.getByTestId('save-status')).toHaveText('Saved on this browser')
+  await expect(page.getByTestId('save-status')).toHaveText('Saved')
 
   await page.reload()
   await expect(page.getByRole('heading', { name: 'Flow' })).toBeVisible()

@@ -2,7 +2,7 @@ import { createSampleBoard } from '../model/sample'
 import type { Board } from '../model/types'
 
 export const DB_NAME = 'sketchpad'
-export const DB_VERSION = 1
+export const DB_VERSION = 2
 
 interface BoardRecord {
   key: string
@@ -15,7 +15,21 @@ interface MetaRecord {
   seeded: boolean
 }
 
+interface TombstoneRecord {
+  key: string
+  ownerId: string
+  boardId: string
+  updatedAt: number
+}
+
+type LocalWrite = (ownerId: string, boardId: string, kind: 'upsert' | 'delete') => void
+
 const tombstones = new Set<string>()
+let afterWrite: LocalWrite | null = null
+
+export function setAfterWrite(listener: LocalWrite | null): void {
+  afterWrite = listener
+}
 const inflight = new Map<string, Promise<Board[]>>()
 let dbPromise: Promise<IDBDatabase> | null = null
 
@@ -52,6 +66,10 @@ function openDb(): Promise<IDBDatabase> {
       }
       if (!db.objectStoreNames.contains('meta')) {
         db.createObjectStore('meta', { keyPath: 'key' })
+      }
+      if (!db.objectStoreNames.contains('tombstones')) {
+        const records = db.createObjectStore('tombstones', { keyPath: 'key' })
+        records.createIndex('byOwner', 'ownerId', { unique: false })
       }
     }
     request.onsuccess = () => resolve(request.result)
@@ -123,10 +141,13 @@ export async function putBoard(
   ownerId: string,
   board: Board,
   mode: 'save' | 'restore' = 'save',
+  sync = true,
 ): Promise<void> {
   const key = storageKey(ownerId, board.id)
-  if (mode === 'restore') tombstones.delete(key)
-  else if (tombstones.has(key)) return
+  if (mode === 'restore') {
+    tombstones.delete(key)
+    await deleteTombstoneRow(key)
+  } else if (tombstones.has(key)) return
   try {
     const db = await openDb()
     await new Promise<void>((resolve, reject) => {
@@ -142,6 +163,8 @@ export async function putBoard(
     })
     if (tombstones.has(key)) {
       await deleteRecord(key)
+    } else if (sync) {
+      afterWrite?.(ownerId, board.id, 'upsert')
     }
   } catch (err) {
     throw storageError(err, 'save')
@@ -163,10 +186,57 @@ export async function deleteBoard(ownerId: string, boardId: string): Promise<voi
   const key = storageKey(ownerId, boardId)
   tombstones.add(key)
   try {
+    await writeTombstone(ownerId, boardId, Date.now())
     await deleteRecord(key)
+    afterWrite?.(ownerId, boardId, 'delete')
   } catch (err) {
     throw storageError(err, 'delete')
   }
+}
+
+export async function removeBoardRecord(ownerId: string, boardId: string): Promise<void> {
+  await deleteRecord(storageKey(ownerId, boardId))
+}
+
+export async function listTombstones(ownerId: string): Promise<Array<{ id: string; updatedAt: number }>> {
+  const db = await openDb()
+  const records = (await readAll(
+    db.transaction('tombstones', 'readonly').objectStore('tombstones').index('byOwner').getAll(ownerId),
+  )) as TombstoneRecord[]
+  return records.map((record) => ({ id: record.boardId, updatedAt: record.updatedAt }))
+}
+
+export async function clearTombstone(ownerId: string, boardId: string): Promise<void> {
+  const key = storageKey(ownerId, boardId)
+  tombstones.delete(key)
+  await deleteTombstoneRow(key)
+}
+
+async function writeTombstone(ownerId: string, boardId: string, updatedAt: number): Promise<void> {
+  const db = await openDb()
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction('tombstones', 'readwrite')
+    tx.objectStore('tombstones').put({
+      key: storageKey(ownerId, boardId),
+      ownerId,
+      boardId,
+      updatedAt,
+    } satisfies TombstoneRecord)
+    tx.oncomplete = () => resolve()
+    tx.onerror = () => reject(tx.error)
+    tx.onabort = () => reject(tx.error)
+  })
+}
+
+async function deleteTombstoneRow(key: string): Promise<void> {
+  const db = await openDb()
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction('tombstones', 'readwrite')
+    tx.objectStore('tombstones').delete(key)
+    tx.oncomplete = () => resolve()
+    tx.onerror = () => reject(tx.error)
+    tx.onabort = () => reject(tx.error)
+  })
 }
 
 async function isSeeded(ownerId: string): Promise<boolean> {
@@ -232,7 +302,7 @@ export async function resetDbConnectionForTests(): Promise<void> {
       const db = await dbPromise
       db.close()
     } catch {
-      // The test database may already be closed.
+      return
     }
   }
   dbPromise = null

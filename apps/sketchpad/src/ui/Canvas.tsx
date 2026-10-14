@@ -80,7 +80,7 @@ export function Canvas({
         <rect width={CANVAS_SIZE.width} height={CANVAS_SIZE.height} fill={CANVAS} />
         <defs>
           <pattern id="dot-grid" width="24" height="24" patternUnits="userSpaceOnUse">
-            <circle cx="1" cy="1" r="1" fill="#e4dcd0" />
+            <circle cx="1" cy="1" r="1" fill="#d4d4d4" />
           </pattern>
           <marker id="canvas-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
             <path d="M 0 0 L 10 5 L 0 10 z" fill={INK} />
@@ -142,7 +142,7 @@ function ShapeGraphic({
           width={shape.width + 10}
           height={shape.height + 10}
           fill="none"
-          stroke="#145c3e"
+          stroke="#0b0b0b"
           strokeWidth={2}
           strokeDasharray="3 3"
         />
@@ -232,12 +232,12 @@ function SelectionHandles({ shape }: { shape: Shape }) {
         width={shape.width + 8}
         height={shape.height + 8}
         fill="none"
-        stroke="#145c3e"
+        stroke="#0b0b0b"
         strokeWidth={1.5}
         strokeDasharray="4 3"
       />
       {handles.map((handle) => (
-        <circle key={handle.id} data-handle={handle.id} cx={handle.cx} cy={handle.cy} r={5} fill="#fffdf8" stroke="#145c3e" strokeWidth={2} />
+        <circle key={handle.id} data-handle={handle.id} cx={handle.cx} cy={handle.cy} r={5} fill="#f6f6f6" stroke="#0b0b0b" strokeWidth={2} />
       ))}
     </>
   )

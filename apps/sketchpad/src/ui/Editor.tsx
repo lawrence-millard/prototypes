@@ -54,7 +54,7 @@ export function Editor({
   const [selection, setSelection] = useState<string | null>(null)
   const [tool, setTool] = useState<Tool>('select')
   const [connectFrom, setConnectFrom] = useState<string | null>(null)
-  const [hint, setHint] = useState('Pick a tool, then click the canvas.')
+  const [hint, setHint] = useState('')
   const [notice, setNotice] = useState(initialNotice ?? null)
   const [helpOpen, setHelpOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
