@@ -1,0 +1,36 @@
+{
+  "name": "sketchpad",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "setup": "node scripts/install-guidance.js",
+    "dev": "vite",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 4173"
+  },
+  "dependencies": {
+    "@clerk/backend": "^3.23.2",
+    "@clerk/clerk-react": "^5.61.10",
+    "@fontsource/geist-mono": "^5.3.0",
+    "@fontsource/open-runde": "^5.3.0",
+    "@neondatabase/serverless": "^1.2.0",
+    "lucide-react": "^0.545.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0",
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "fake-indexeddb": "^6.2.5",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.3"
+  }
+}
