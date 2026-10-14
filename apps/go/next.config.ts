@@ -17,7 +17,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://img.clerk.com",
   "font-src 'self'",
-  "connect-src 'self' https://clerk.millard.ink https://*.clerk.accounts.dev https://*.clerk.com https://api.clerk.com",
+  "connect-src 'self' https://clerk.millard.ink https://*.clerk.accounts.dev https://*.clerk.com https://api.clerk.com https://*.protect.clerk.com:*",
   "frame-src 'self' https://clerk.millard.ink https://*.clerk.accounts.dev https://*.clerk.com https://challenges.cloudflare.com",
   "worker-src 'self' blob:",
   "object-src 'none'",
