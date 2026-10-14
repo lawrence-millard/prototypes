@@ -34,12 +34,13 @@ export function Reveal() {
     return () => window.removeEventListener('hashchange', read)
   }, [])
 
-  if (!ready) return <p className="dim">loading</p>
+  if (!ready) return <p className="dim">Loading</p>
   if (!/^[A-Za-z0-9_-]{16,64}$/.test(id) || !key) return <p className="dim">missing key.</p>
   if (plain != null) return <p className="secret">{plain}</p>
 
   return (
     <div className="stack">
+      <p className="lede">Open once.</p>
       <button
         type="button"
         className="primary"
@@ -60,7 +61,7 @@ export function Reveal() {
           })
         }}
       >
-        open
+        Open
       </button>
       {error ? <p className="err" role="alert">{error}</p> : null}
     </div>

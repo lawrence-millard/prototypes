@@ -4,7 +4,7 @@ import { Shell } from '@/components/shell'
 
 export default function SignUpPage() {
   return (
-    <Shell mark="c" name="cards">
+    <Shell menu={null} mark="c" name="cards">
       <Suspense fallback={<p className="dim">loading</p>}>
         <AuthForm mode="up" />
       </Suspense>

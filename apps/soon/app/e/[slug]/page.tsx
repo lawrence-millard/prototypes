@@ -25,7 +25,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     event = await readPublic(getDb(), slug)
   } catch {
     return (
-      <Shell mark="s" name="soon">
+      <Shell menu={null} mark="s" name="soon">
         <p className="err" role="alert">could not load.</p>
       </Shell>
     )
@@ -33,11 +33,13 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
   if (!event) notFound()
   const when = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(event.happensAt))
   return (
-    <Shell mark="s" name="soon">
-      <h2 className="title">{event.title}</h2>
-      <Countdown iso={event.happensAt} />
-      <p className="dim mono">{when}</p>
-      {event.note ? <p style={{ marginTop: 12 }}>{event.note}</p> : null}
+    <Shell menu={null} mark="s" name="soon">
+      <div className="stack">
+        <h2 className="title">{event.title}</h2>
+        <Countdown iso={event.happensAt} />
+        <p className="dim">{when}</p>
+        {event.note ? <p>{event.note}</p> : null}
+      </div>
     </Shell>
   )
 }

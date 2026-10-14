@@ -2,9 +2,11 @@
 
 import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { Check, Copy, Pencil } from 'lucide-react'
 import { addSecret, editSecret, removeSecret } from '@/app/(app)/actions'
-import { ConfirmButton } from './confirm-button'
+import { relativeTime } from '@/lib/relative'
 import { encryptSecret } from '@/lib/crypto'
+import { ConfirmButton } from './confirm-button'
 import type { SecretItem } from '@/lib/types'
 
 const choices = [
@@ -14,10 +16,6 @@ const choices = [
 ] as const
 
 type Expiry = (typeof choices)[number]['value']
-
-function whenLabel(iso: string) {
-  return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(iso))
-}
 
 export function Composer({ secrets, loadError }: { secrets: SecretItem[]; loadError: string }) {
   const router = useRouter()
@@ -36,7 +34,7 @@ export function Composer({ secrets, loadError }: { secrets: SecretItem[]; loadEr
   return (
     <div className="stack">
       <form
-        className="stack"
+        className="composer composer-block"
         onSubmit={(event) => {
           event.preventDefault()
           if (text.length < 1 || text.length > 4000) return
@@ -61,13 +59,10 @@ export function Composer({ secrets, loadError }: { secrets: SecretItem[]; loadEr
           })
         }}
       >
-        <div className="field">
-          <label className="label" htmlFor="secret">secret</label>
-          <textarea id="secret" name="secret" maxLength={4000} autoComplete="off" spellCheck={false} value={text} onChange={(event) => setText(event.target.value)} />
-        </div>
-        <div className="field">
-          <span className="label" id="expires-label">expires</span>
-          <div className="modes" role="radiogroup" aria-labelledby="expires-label">
+        <label className="label" htmlFor="secret">Secret</label>
+        <textarea id="secret" name="secret" maxLength={4000} autoComplete="off" spellCheck={false} placeholder="Write it here" value={text} onChange={(event) => setText(event.target.value)} />
+        <div className="composer-bar">
+          <div className="modes" role="radiogroup" aria-label="Expires">
             {choices.map((choice) => (
               <button
                 key={choice.value}
@@ -81,38 +76,37 @@ export function Composer({ secrets, loadError }: { secrets: SecretItem[]; loadEr
               </button>
             ))}
           </div>
+          <button type="submit" className="primary" disabled={pending || text.length === 0}>Create</button>
         </div>
-        <button type="submit" className="primary" disabled={pending || text.length === 0}>create</button>
       </form>
       {link ? (
-        <div className="field">
-          <label className="label" htmlFor="link">link</label>
-          <div className="inline">
-            <input id="link" className="mono" readOnly value={link} />
-            <button
-              type="button"
-              className="ghost"
-              onClick={() => {
-                void navigator.clipboard.writeText(link).then(() => {
-                  setCopied(true)
-                  window.setTimeout(() => setCopied(false), 2000)
-                }).catch(() => setCopied(false))
-              }}
-            >
-              {copied ? 'copied' : 'copy'}
-            </button>
-          </div>
+        <div className="composer">
+          <label className="label" htmlFor="link">Link</label>
+          <input id="link" className="mono" readOnly value={link} />
+          <button
+            type="button"
+            className="icon"
+            aria-label={copied ? 'Copied' : 'Copy'}
+            onClick={() => {
+              void navigator.clipboard.writeText(link).then(() => {
+                setCopied(true)
+                window.setTimeout(() => setCopied(false), 2000)
+              }).catch(() => setCopied(false))
+            }}
+          >
+            {copied ? <Check size={16} strokeWidth={1.5} aria-hidden="true" /> : <Copy size={16} strokeWidth={1.5} aria-hidden="true" />}
+          </button>
         </div>
       ) : null}
       {error ? <p className="err" role="alert">{error}</p> : null}
-      <h2 className="label">links</h2>
-      {rows.length === 0 ? <p className="dim">no links</p> : (
-        <div>
+      <h2 className="label">Links</h2>
+      {rows.length === 0 ? <div className="empty"><p>No links</p></div> : (
+        <div className="list">
           {rows.map((item) => (
-            <div className="item" key={item.id}>
+            <div className="row" key={item.id}>
               <div className="grow">
-                <p className="mono">{item.id.slice(0, 6)}</p>
-                <p className="dim mono">{whenLabel(item.expiresAt)}</p>
+                <p className="row-title mono">{item.id.slice(0, 6)}</p>
+                <p className="dim">expires {relativeTime(item.expiresAt)} · created {relativeTime(item.createdAt)}</p>
                 {editing === item.id ? (
                   <form
                     className="stack"
@@ -130,7 +124,7 @@ export function Composer({ secrets, loadError }: { secrets: SecretItem[]; loadEr
                       })
                     }}
                   >
-                    <div className="modes" role="radiogroup" aria-label="expires">
+                    <div className="modes" role="radiogroup" aria-label="Expires">
                       {choices.map((choice) => (
                         <button key={choice.value} type="button" role="radio" className="mode" aria-checked={draft === choice.value} onClick={() => setDraft(choice.value)}>
                           {choice.label}
@@ -138,17 +132,19 @@ export function Composer({ secrets, loadError }: { secrets: SecretItem[]; loadEr
                       ))}
                     </div>
                     <div className="actions">
-                      <button type="submit" className="primary" disabled={pending}>save</button>
-                      <button type="button" className="ghost" onClick={() => setEditing(null)}>cancel</button>
+                      <button type="submit" className="primary" disabled={pending}>Save</button>
+                      <button type="button" className="ghost" onClick={() => setEditing(null)}>Cancel</button>
                     </div>
                   </form>
                 ) : null}
               </div>
               {editing === item.id ? null : (
                 <div className="ops">
-                  <button type="button" className="text" disabled={pending} onClick={() => { setEditing(item.id); setDraft('1d') }}>edit</button>
+                  <button type="button" className="icon" aria-label="Edit" disabled={pending} onClick={() => { setEditing(item.id); setDraft('1d') }}>
+                    <Pencil size={16} strokeWidth={1.5} aria-hidden="true" />
+                  </button>
                   <ConfirmButton
-                    label="delete"
+                    label="Delete"
                     disabled={pending}
                     onConfirm={() => {
                       const previous = rows

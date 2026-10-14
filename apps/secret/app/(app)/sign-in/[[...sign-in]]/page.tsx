@@ -4,7 +4,7 @@ import { Shell } from '@/components/shell'
 
 export default function SignInPage() {
   return (
-    <Shell mark="#" name="secret">
+    <Shell menu={null} mark="#" name="secret">
       <Suspense fallback={<p className="dim">loading</p>}>
         <AuthForm mode="in" />
       </Suspense>

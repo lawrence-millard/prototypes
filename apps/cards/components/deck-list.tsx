@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { Pencil } from 'lucide-react'
 import { addDeck, editDeck, removeDeck } from '@/app/(app)/actions'
 import { ConfirmButton } from './confirm-button'
 import type { Deck } from '@/lib/types'
@@ -19,8 +20,10 @@ export function DeckList({ decks, loadError }: { decks: Deck[]; loadError: strin
 
   return (
     <div className="stack">
+      <div className="field">
+        <label className="label" htmlFor="deck-name">Name</label>
       <form
-        className="stack"
+        className="composer"
         onSubmit={(event) => {
           event.preventDefault()
           const trimmed = name.trim().replace(/\s+/g, ' ')
@@ -42,19 +45,15 @@ export function DeckList({ decks, loadError }: { decks: Deck[]; loadError: strin
           })
         }}
       >
-        <div className="field">
-          <label className="label" htmlFor="deck-name">name</label>
-          <div className="inline">
-            <input id="deck-name" name="name" maxLength={80} autoComplete="off" value={name} onChange={(event) => setName(event.target.value)} />
-            <button type="submit" className="primary" disabled={pending || name.trim().length === 0}>add</button>
-          </div>
-        </div>
+        <input id="deck-name" name="name" maxLength={80} autoComplete="off" placeholder="Deck name" value={name} onChange={(event) => setName(event.target.value)} />
+        <button type="submit" className="primary" disabled={pending || name.trim().length === 0}>Add</button>
       </form>
+      </div>
       {error ? <p className="err" role="alert">{error}</p> : null}
-      {rows.length === 0 ? <p className="dim">no decks</p> : (
-        <div>
+      {rows.length === 0 ? <div className="empty"><p>No decks</p></div> : (
+        <div className="list">
           {rows.map((deck) => (
-            <div className="item" key={deck.id}>
+            <div className="row" key={deck.id}>
               <div className="grow">
                 {editing === deck.id ? (
                   <form
@@ -77,22 +76,24 @@ export function DeckList({ decks, loadError }: { decks: Deck[]; loadError: strin
                       })
                     }}
                   >
-                    <input aria-label="name" maxLength={80} value={draft} autoFocus onChange={(event) => setDraft(event.target.value)} />
-                    <button type="submit" className="text" disabled={pending || draft.trim().length === 0}>save</button>
-                    <button type="button" className="text" onClick={() => setEditing(null)}>cancel</button>
+                    <input aria-label="Name" maxLength={80} placeholder="Deck name" value={draft} autoFocus onChange={(event) => setDraft(event.target.value)} />
+                    <button type="submit" className="text" disabled={pending || draft.trim().length === 0}>Save</button>
+                    <button type="button" className="text" onClick={() => setEditing(null)}>Cancel</button>
                   </form>
                 ) : (
-                  <>
-                    <p className="title" style={{ fontSize: 16 }}><a href={`/deck/${deck.id}`}>{deck.name}</a></p>
-                    <p className="dim mono">{deck.due} due · {deck.cards}</p>
-                  </>
+                  <a className="row-main" href={`/deck/${deck.id}`}>
+                    <p className="row-title">{deck.name}</p>
+                    <p className="dim">{deck.due} due · {deck.cards} cards</p>
+                  </a>
                 )}
               </div>
               {editing === deck.id ? null : (
                 <div className="ops">
-                  <button type="button" className="text" disabled={pending} onClick={() => { setEditing(deck.id); setDraft(deck.name) }}>edit</button>
+                  <button type="button" className="icon" aria-label="Edit" disabled={pending} onClick={() => { setEditing(deck.id); setDraft(deck.name) }}>
+                    <Pencil size={16} strokeWidth={1.5} aria-hidden="true" />
+                  </button>
                   <ConfirmButton
-                    label="delete"
+                    label="Delete"
                     disabled={pending}
                     onConfirm={() => {
                       const previous = rows

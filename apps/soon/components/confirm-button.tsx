@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Trash2 } from 'lucide-react'
 
 export function ConfirmButton({
   label,
@@ -16,9 +17,10 @@ export function ConfirmButton({
   return (
     <button
       type="button"
-      className="text"
+      className={hot ? 'ghost' : 'icon'}
       disabled={disabled}
       aria-pressed={hot}
+      aria-label={hot ? 'Confirm' : label}
       onClick={() => {
         if (!hot) {
           setHot(true)
@@ -32,7 +34,7 @@ export function ConfirmButton({
         if (event.key === 'Escape') setHot(false)
       }}
     >
-      {hot ? 'confirm' : label}
+      {hot ? 'Confirm' : <Trash2 size={16} strokeWidth={1.5} aria-hidden="true" />}
     </button>
   )
 }

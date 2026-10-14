@@ -28,9 +28,13 @@ export function AuthForm({ mode }: { mode: 'in' | 'up' }) {
   const fg = dark ? '#e9e9e9' : '#0b0b0b'
   const bg = dark ? '#000000' : '#f6f6f6'
   const mute = dark ? '#a2a2a2' : '#5a5a5a'
+  const line = dark ? 'rgba(110,110,110,0.35)' : 'rgba(124,124,124,0.35)'
   const appearance = {
     variables: {
       colorPrimary: fg,
+      colorDanger: fg,
+      colorSuccess: fg,
+      colorWarning: fg,
       colorBackground: bg,
       colorText: fg,
       colorTextSecondary: mute,
@@ -40,12 +44,19 @@ export function AuthForm({ mode }: { mode: 'in' | 'up' }) {
       borderRadius: '8px',
       fontFamily: '"Open Runde", "SF Pro", ui-sans-serif, system-ui, sans-serif',
       fontFamilyButtons: '"Open Runde", "SF Pro", ui-sans-serif, system-ui, sans-serif',
+      fontSize: '16px',
     },
     elements: {
-      card: { boxShadow: 'none', border: '1px solid rgba(124,124,124,0.35)' },
-      cardBox: { boxShadow: 'none' },
-      footer: { boxShadow: 'none' },
-      headerTitle: { fontSize: '20px', letterSpacing: '-0.4px' },
+      rootBox: { width: '100%' },
+      card: { boxShadow: 'none', border: `1px solid ${line}`, background: bg, width: '100%' },
+      cardBox: { boxShadow: 'none', width: '100%' },
+      headerTitle: { fontSize: '20px', letterSpacing: '-0.4px', fontWeight: '500' },
+      headerSubtitle: { color: mute },
+      socialButtonsBlockButton: { boxShadow: 'none', border: `1px solid ${line}` },
+      formButtonPrimary: { background: fg, color: bg, boxShadow: 'none' },
+      formFieldInput: { boxShadow: 'none', border: `1px solid ${line}`, background: 'transparent' },
+      footer: { boxShadow: 'none', background: 'transparent' },
+      footerActionLink: { color: fg },
     },
   }
 

@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { Pencil } from 'lucide-react'
 import { addCard, editCard, editDeck, gradeCard, removeCard, removeDeck } from '@/app/(app)/actions'
-import { ConfirmButton } from './confirm-button'
 import { nextReview } from '@/lib/srs'
+import { ConfirmButton } from './confirm-button'
 import type { Card, DeckDetail, Grade } from '@/lib/types'
 
 function gap(card: Card) {
@@ -59,9 +60,28 @@ export function DeckBoard({ deck }: { deck: DeckDetail }) {
     })
   }
 
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      const target = event.target
+      if (target instanceof HTMLElement && target.closest('input, textarea, select')) return
+      if (event.metaKey || event.ctrlKey || event.altKey) return
+      if (!current) return
+      if (event.key === ' ' && !(target instanceof HTMLElement && target.closest('button, a'))) {
+        event.preventDefault()
+        setShown((value) => !value)
+      }
+      if (!shown) return
+      if (event.key === '1') grade('again')
+      if (event.key === '2') grade('good')
+      if (event.key === '3') grade('easy')
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  })
+
   return (
     <div className="stack">
-      <div className="item" style={{ borderTop: 0, paddingTop: 0 }}>
+      <div className="row" style={{ borderBottom: 0 }}>
         <div className="grow">
           {renaming ? (
             <form
@@ -83,19 +103,21 @@ export function DeckBoard({ deck }: { deck: DeckDetail }) {
                 })
               }}
             >
-              <input aria-label="name" maxLength={80} value={draftName} autoFocus onChange={(event) => setDraftName(event.target.value)} />
-              <button type="submit" className="text" disabled={pending || draftName.trim().length === 0}>save</button>
-              <button type="button" className="text" onClick={() => setRenaming(false)}>cancel</button>
+              <input aria-label="Name" maxLength={80} placeholder="Deck name" value={draftName} autoFocus onChange={(event) => setDraftName(event.target.value)} />
+              <button type="submit" className="text" disabled={pending || draftName.trim().length === 0}>Save</button>
+              <button type="button" className="text" onClick={() => setRenaming(false)}>Cancel</button>
             </form>
           ) : (
-            <p className="title" style={{ fontSize: 16 }}>{name}</p>
+            <p className="row-title">{name}</p>
           )}
         </div>
         {renaming ? null : (
           <div className="ops">
-            <button type="button" className="text" disabled={pending} onClick={() => { setRenaming(true); setDraftName(name) }}>edit</button>
+            <button type="button" className="icon" aria-label="Edit" disabled={pending} onClick={() => { setRenaming(true); setDraftName(name) }}>
+              <Pencil size={16} strokeWidth={1.5} aria-hidden="true" />
+            </button>
             <ConfirmButton
-              label="delete"
+              label="Delete"
               disabled={pending}
               onConfirm={() => {
                 startTransition(async () => {
@@ -114,27 +136,30 @@ export function DeckBoard({ deck }: { deck: DeckDetail }) {
       </div>
       {current ? (
         <div className="stack">
-          <p className="title">{current.front}</p>
-          {shown ? <p className="secret">{current.back}</p> : (
-            <button type="button" className="ghost" onClick={() => setShown(true)}>show</button>
-          )}
+          <button type="button" className="flip" aria-pressed={shown} onClick={() => setShown((value) => !value)}>
+            <span className={shown ? 'flip-inner is-shown' : 'flip-inner'}>
+              <span className="face">{current.front}</span>
+              <span className="face back">{current.back}</span>
+            </span>
+          </button>
+          <p className="hint"><kbd>space</kbd> flip {shown ? <><kbd>1</kbd> again <kbd>2</kbd> good <kbd>3</kbd> easy</> : null}</p>
           {shown ? (
             <div className="actions">
-              <button type="button" className="ghost" disabled={pending} onClick={() => grade('again')}>again</button>
-              <button ref={goodRef} type="button" className="primary" disabled={pending} onClick={() => grade('good')}>good</button>
-              <button type="button" className="ghost" disabled={pending} onClick={() => grade('easy')}>easy</button>
+              <button type="button" className="ghost" disabled={pending} onClick={() => grade('again')}>Again</button>
+              <button ref={goodRef} type="button" className="primary" disabled={pending} onClick={() => grade('good')}>Good</button>
+              <button type="button" className="ghost" disabled={pending} onClick={() => grade('easy')}>Easy</button>
             </div>
           ) : null}
         </div>
       ) : (
-        <p className="dim">nothing due</p>
+        <div className="empty"><p>Nothing due</p></div>
       )}
       {error ? <p className="err" role="alert">{error}</p> : null}
-      <h2 className="label">cards</h2>
-      {cards.length === 0 ? <p className="dim">no cards</p> : (
-        <div>
+      <h2 className="label">Cards</h2>
+      {cards.length === 0 ? <div className="empty"><p>No cards</p></div> : (
+        <div className="list">
           {cards.map((card) => (
-            <div className="item" key={card.id}>
+            <div className="row" key={card.id}>
               <div className="grow">
                 {editing === card.id ? (
                   <form
@@ -158,27 +183,29 @@ export function DeckBoard({ deck }: { deck: DeckDetail }) {
                       })
                     }}
                   >
-                    <label className="label" htmlFor={`front-${card.id}`}>front</label>
-                    <textarea id={`front-${card.id}`} maxLength={2000} value={draftFront} onChange={(event) => setDraftFront(event.target.value)} />
-                    <label className="label" htmlFor={`back-${card.id}`}>back</label>
-                    <textarea id={`back-${card.id}`} maxLength={2000} value={draftBack} onChange={(event) => setDraftBack(event.target.value)} />
+                    <label className="label" htmlFor={`front-${card.id}`}>Front</label>
+                    <textarea id={`front-${card.id}`} maxLength={2000} placeholder="Front" value={draftFront} onChange={(event) => setDraftFront(event.target.value)} />
+                    <label className="label" htmlFor={`back-${card.id}`}>Back</label>
+                    <textarea id={`back-${card.id}`} maxLength={2000} placeholder="Back" value={draftBack} onChange={(event) => setDraftBack(event.target.value)} />
                     <div className="actions">
-                      <button type="submit" className="primary" disabled={pending}>save</button>
-                      <button type="button" className="ghost" onClick={() => setEditing(null)}>cancel</button>
+                      <button type="submit" className="primary" disabled={pending}>Save</button>
+                      <button type="button" className="ghost" onClick={() => setEditing(null)}>Cancel</button>
                     </div>
                   </form>
                 ) : (
                   <>
-                    <p className="title" style={{ fontSize: 16 }}>{card.front}</p>
+                    <p className="row-title">{card.front}</p>
                     <p className="dim mono">{gap(card)}</p>
                   </>
                 )}
               </div>
               {editing === card.id ? null : (
                 <div className="ops">
-                  <button type="button" className="text" disabled={pending} onClick={() => { setEditing(card.id); setDraftFront(card.front); setDraftBack(card.back) }}>edit</button>
+                  <button type="button" className="icon" aria-label="Edit" disabled={pending} onClick={() => { setEditing(card.id); setDraftFront(card.front); setDraftBack(card.back) }}>
+                    <Pencil size={16} strokeWidth={1.5} aria-hidden="true" />
+                  </button>
                   <ConfirmButton
-                    label="delete"
+                    label="Delete"
                     disabled={pending}
                     onConfirm={() => {
                       const previous = cards
@@ -201,16 +228,16 @@ export function DeckBoard({ deck }: { deck: DeckDetail }) {
         </div>
       )}
       <form
-        className="stack"
+        className="composer composer-block"
         onSubmit={(event) => {
           event.preventDefault()
           const nextFront = front.trim()
           const nextBack = back.trim()
           if (!nextFront || !nextBack) return
           const id = crypto.randomUUID()
-          const now = new Date().toISOString()
+          const created = new Date().toISOString()
           const previous = cards
-          setCards([...cards, { id, front: nextFront, back: nextBack, ease: 2.5, intervalDays: 0, repetitions: 0, dueAt: now, createdAt: now }])
+          setCards([...cards, { id, front: nextFront, back: nextBack, ease: 2.5, intervalDays: 0, repetitions: 0, dueAt: created, createdAt: created }])
           setFront('')
           setBack('')
           setError('')
@@ -227,17 +254,16 @@ export function DeckBoard({ deck }: { deck: DeckDetail }) {
           })
         }}
       >
-        <div className="field">
-          <label className="label" htmlFor="front">front</label>
-          <textarea id="front" name="front" maxLength={2000} value={front} onChange={(event) => setFront(event.target.value)} />
+        <label className="label" htmlFor="front">Front</label>
+        <input id="front" name="front" maxLength={2000} placeholder="Front" value={front} onChange={(event) => setFront(event.target.value)} />
+        <label className="label" htmlFor="back">Back</label>
+        <input id="back" name="back" maxLength={2000} placeholder="Back" value={back} onChange={(event) => setBack(event.target.value)} />
+        <div className="composer-bar">
+          <span className="dim">New card</span>
+          <button type="submit" className="primary" disabled={pending || front.trim().length === 0 || back.trim().length === 0}>Add</button>
         </div>
-        <div className="field">
-          <label className="label" htmlFor="back">back</label>
-          <textarea id="back" name="back" maxLength={2000} value={back} onChange={(event) => setBack(event.target.value)} />
-        </div>
-        <button type="submit" className="primary" disabled={pending || front.trim().length === 0 || back.trim().length === 0}>add</button>
       </form>
-      <p className="account"><a href="/">decks</a></p>
+      <p className="account"><a href="/">Decks</a></p>
     </div>
   )
 }
